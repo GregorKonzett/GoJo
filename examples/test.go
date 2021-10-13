@@ -19,4 +19,9 @@ func main() {
 
 	fmt.Println("Client: ", returnVal)
 	fmt.Println("Client: ", returnVal1)
+
+	/*
+		Define join patterns:
+			j.when(id1).and(id2).thenDo(func(a,b) {})
+	*/
 }

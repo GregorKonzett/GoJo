@@ -6,13 +6,13 @@ import (
 )
 
 type Junction struct {
-	sender   chan interface{}
+	sender   chan Packet
 	receiver chan interface{}
 	channels int
 }
 
 func NewJunction() *Junction {
-	sender := make(chan interface{})
+	sender := make(chan Packet)
 	receiver := make(chan interface{})
 
 	StartController(sender, receiver)
@@ -21,22 +21,26 @@ func NewJunction() *Junction {
 }
 
 func NewAsyncSignal[T any](j *Junction) (int, func(T)) {
-	channel := (*j).channels
-	(*j).channels++
+	channel := getNewChannelId(j)
 
 	return channel, func(data T) {
 		fmt.Println("Sending from channel: ", channel)
-		(*j).sender <- data
+		(*j).sender <- Packet{
+			Type: MESSAGE,
+			Msg:  data,
+		}
 	}
 }
 
 func NewSyncSignal[T any, R any](j *Junction) (int, func(T) (R, error)) {
-	channel := (*j).channels
-	(*j).channels++
+	channel := getNewChannelId(j)
 
 	return channel, func(data T) (R, error) {
 		fmt.Println("Sending from channel: ", channel)
-		(*j).sender <- data
+		(*j).sender <- Packet{
+			Type: MESSAGE,
+			Msg:  data,
+		}
 
 		receivedData := <-(*j).receiver
 
@@ -50,4 +54,16 @@ func NewSyncSignal[T any, R any](j *Junction) (int, func(T) (R, error)) {
 			return returnData, errors.New("invalid data type")
 		}
 	}
+}
+
+func getNewChannelId(j *Junction) int {
+	(*j).sender <- Packet{Type: GetNewChannelId}
+	channelId := <-(*j).receiver
+
+	switch t := channelId.(type) {
+	case int:
+		return t
+	}
+
+	return 0
 }

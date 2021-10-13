@@ -3,15 +3,12 @@ package gojo
 type Action int
 
 const (
-	ADD_JUNCTION = iota
-	MESSAGE      = iota
-	ADD_CHANNEL  = iota
+	MESSAGE         = iota
+	AddJoinPattern  = iota
+	GetNewChannelId = iota
 )
 
 type Packet struct {
-	Msg     interface{}
-	Channel chan interface{}
-	Type    Action
+	Msg  interface{}
+	Type Action
 }
-
-type GenericChan[T any] chan T

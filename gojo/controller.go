@@ -4,16 +4,27 @@ import (
 	"fmt"
 )
 
-func StartController(receiver chan interface{}, sender chan interface{}) {
+func StartController(receiver chan Packet, sender chan interface{}) {
 	go runThreadGeneric(receiver, sender)
 }
 
-func runThreadGeneric(receiver chan interface{}, sender chan interface{}) {
+func runThreadGeneric(receiver chan Packet, sender chan interface{}) {
+	channelIds := 0
+
 	for true {
 		data := <-receiver
 
-		fmt.Println("Controller: ", data)
-
-		sender <- "Return Value"
+		switch data.Type {
+		case MESSAGE:
+			fmt.Println("Incoming message: ", data.Msg)
+			sender <- "Message processed"
+		case AddJoinPattern:
+			fmt.Println("Adding new join pattern: ", data.Msg)
+			sender <- "Added new join pattern"
+		case GetNewChannelId:
+			fmt.Println("Getting new channel id: ", channelIds)
+			sender <- channelIds
+			channelIds++
+		}
 	}
 }
