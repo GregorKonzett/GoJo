@@ -4,15 +4,16 @@ import (
 	"fmt"
 )
 
-func StartController[T any](sender chan Packet[T]) {
-	go runThread(sender)
+func StartController(receiver chan interface{}, sender chan interface{}) {
+	go runThreadGeneric(receiver, sender)
 }
 
-func runThread[T any](sender chan Packet[T]) {
-	fmt.Println("in thread")
+func runThreadGeneric(receiver chan interface{}, sender chan interface{}) {
 	for true {
-		data := <-sender
+		data := <-receiver
 
-		fmt.Println(data)
+		fmt.Println("Controller: ", data)
+
+		sender <- "Return Value"
 	}
 }

@@ -2,22 +2,21 @@ package main
 
 import (
 	"../gojo"
+	"fmt"
 )
 
 func main() {
-	sender := make(chan gojo.Packet[any])
+	j := gojo.NewJunction()
 
-	gojo.StartController(sender)
+	id1, syncSignal := gojo.NewSyncSignal[int, string](j)
+	id2, syncSignal1 := gojo.NewSyncSignal[int, string](j)
 
-	sender <- gojo.Packet[any]{
-		Msg: gojo.Message[any]{
-			Data: 1,
-		},
-	}
+	fmt.Println("Signal created", id1)
+	fmt.Println("Signal created", id2)
 
-	sender <- gojo.Packet[any]{
-		Msg: gojo.Message[any]{
-			Data: "asd",
-		},
-	}
+	returnVal, _ := syncSignal(1)
+	returnVal1, _ := syncSignal1(2)
+
+	fmt.Println("Client: ", returnVal)
+	fmt.Println("Client: ", returnVal1)
 }

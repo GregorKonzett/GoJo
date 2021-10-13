@@ -1,9 +1,17 @@
 package gojo
 
-type Message[T any] struct {
-	Data T
+type Action int
+
+const (
+	ADD_JUNCTION = iota
+	MESSAGE      = iota
+	ADD_CHANNEL  = iota
+)
+
+type Packet struct {
+	Msg     interface{}
+	Channel chan interface{}
+	Type    Action
 }
 
-type Packet[T any] struct {
-	Msg Message[T]
-}
+type GenericChan[T any] chan T
