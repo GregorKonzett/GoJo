@@ -4,8 +4,8 @@ type Action int
 type ChannelType int
 
 const (
-	ASYNC_SIGNAL = iota
-	SYNC_SIGNAL  = iota
+	AsyncSignal = iota
+	SyncSignal  = iota
 )
 
 const (

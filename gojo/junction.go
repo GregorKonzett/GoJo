@@ -24,7 +24,7 @@ func NewAsyncSignal[T any](j *Junction) (ChannelId, func(T)) {
 	channel := getNewChannelId(j)
 
 	return ChannelId{
-			ASYNC_SIGNAL,
+			AsyncSignal,
 			channel,
 		}, func(data T) {
 			fmt.Println("Sending from channel: ", channel)
@@ -39,7 +39,7 @@ func NewSyncSignal[T any, R any](j *Junction) (ChannelId, func(T) (R, error)) {
 	channel := getNewChannelId(j)
 
 	return ChannelId{
-			SYNC_SIGNAL,
+			SyncSignal,
 			channel,
 		}, func(data T) (R, error) {
 			fmt.Println("Sending from channel: ", channel)
