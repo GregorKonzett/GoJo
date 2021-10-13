@@ -20,40 +20,46 @@ func NewJunction() *Junction {
 	return &Junction{sender, receiver, 0}
 }
 
-func NewAsyncSignal[T any](j *Junction) (int, func(T)) {
+func NewAsyncSignal[T any](j *Junction) (ChannelId, func(T)) {
 	channel := getNewChannelId(j)
 
-	return channel, func(data T) {
-		fmt.Println("Sending from channel: ", channel)
-		(*j).sender <- Packet{
-			Type: MESSAGE,
-			Msg:  data,
+	return ChannelId{
+			ASYNC_SIGNAL,
+			channel,
+		}, func(data T) {
+			fmt.Println("Sending from channel: ", channel)
+			(*j).sender <- Packet{
+				Type: MESSAGE,
+				Msg:  data,
+			}
 		}
-	}
 }
 
-func NewSyncSignal[T any, R any](j *Junction) (int, func(T) (R, error)) {
+func NewSyncSignal[T any, R any](j *Junction) (ChannelId, func(T) (R, error)) {
 	channel := getNewChannelId(j)
 
-	return channel, func(data T) (R, error) {
-		fmt.Println("Sending from channel: ", channel)
-		(*j).sender <- Packet{
-			Type: MESSAGE,
-			Msg:  data,
+	return ChannelId{
+			SYNC_SIGNAL,
+			channel,
+		}, func(data T) (R, error) {
+			fmt.Println("Sending from channel: ", channel)
+			(*j).sender <- Packet{
+				Type: MESSAGE,
+				Msg:  data,
+			}
+
+			receivedData := <-(*j).receiver
+
+			var returnData R
+
+			switch t := receivedData.(type) {
+			case R:
+				returnData := t
+				return returnData, nil
+			default:
+				return returnData, errors.New("invalid data type")
+			}
 		}
-
-		receivedData := <-(*j).receiver
-
-		var returnData R
-
-		switch t := receivedData.(type) {
-		case R:
-			returnData := t
-			return returnData, nil
-		default:
-			return returnData, errors.New("invalid data type")
-		}
-	}
 }
 
 func getNewChannelId(j *Junction) int {

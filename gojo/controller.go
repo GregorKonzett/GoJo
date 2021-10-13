@@ -5,10 +5,10 @@ import (
 )
 
 func StartController(receiver chan Packet, sender chan interface{}) {
-	go runThreadGeneric(receiver, sender)
+	go runThread(receiver, sender)
 }
 
-func runThreadGeneric(receiver chan Packet, sender chan interface{}) {
+func runThread(receiver chan Packet, sender chan interface{}) {
 	channelIds := 0
 
 	for true {
