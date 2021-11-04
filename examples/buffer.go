@@ -1,31 +1,31 @@
 package main
 
 import (
-	"../gojo"
+	"../gojo/junction"
+	"../gojo/types"
 	"fmt"
 )
 
-func sendSignal[T any](val T, putSignal func(T)) {
-	putSignal(val)
-}
-
 func main() {
-	j := gojo.NewJunction()
+	j := junction.NewJunction()
 
-	get, getSignal := gojo.NewSyncSignal[int](j)
-	put, putSignal := gojo.NewAsyncSignal[int](j)
-	full, fullSignal := gojo.NewAsyncSignal[int](j)
-	empty, emptySignal := gojo.NewAsyncSignal[bool](j)
+	get, getSignal := junction.NewSyncSignal[types.Unit, int](j)
+	put, putSignal := junction.NewAsyncSignal[int](j)
+	full, fullSignal := junction.NewAsyncSignal[int](j)
+	empty, emptySignal := junction.NewAsyncSignal[types.Unit](j)
 
-	gojo.NewBinaryRecvJoinPattern[int, int](j, get, full).ThenDo(func(a int) int {
-		emptySignal(true)
+	junction.NewBinarySyncJoinPattern[int, int](j, get, full).ThenDo(func(a int) int {
+		emptySignal(types.Unit{})
 		return a
 	})
 
-	gojo.NewBinarySendJoinPattern[int, interface{}](j, put, empty).ThenDo(func(a int, b interface{}) {
+	junction.NewBinaryAsyncJoinPattern[int, types.Unit](j, put, empty).ThenDo(func(a int, b types.Unit) {
 		fullSignal(a)
 	})
 
-	go sendSignal(1, putSignal)
-	fmt.Println(getSignal())
+	go putSignal(1)
+	fmt.Println(getSignal(types.Unit{}))
+
+	for true {
+	}
 }
