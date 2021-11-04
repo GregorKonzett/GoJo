@@ -5,19 +5,23 @@ import (
 	"fmt"
 )
 
-func registerNewJoinPattern(joinPatterns *JoinPatterns, joinPattern types.JoinPatternPacket) {
+func registerNewJoinPattern(patterns *JoinPatterns, joinPattern types.JoinPatternPacket) {
 	fmt.Println("Adding new join pattern: ")
-	(*joinPatterns).registeredJoinPatterns[(*joinPatterns).joinPatternId] = joinPattern
+	(*patterns).joinPatterns[(*patterns).joinPatternId] = joinPattern
 
-	for _, port := range joinPattern.InputPorts {
-		(*joinPatterns).firedPorts[port.Id] = 0
-		(*joinPatterns).portIdToJoinPatternId[port.Id] = (*joinPatterns).joinPatternId
+	fillPortsToJoinPatterns(patterns, joinPattern.Signals)
+
+	(*patterns).joinPatternId++
+}
+
+func fillPortsToJoinPatterns(patterns *JoinPatterns, signals []types.SignalId) {
+	for _, port := range signals {
+		(*patterns).firedPorts[port.Id] = []types.Payload{}
+
+		if (*patterns).portsToJoinPatterns[port.Id] == nil {
+			(*patterns).portsToJoinPatterns[port.Id] = []int{}
+		}
+
+		(*patterns).portsToJoinPatterns[port.Id] = append((*patterns).portsToJoinPatterns[port.Id], (*patterns).joinPatternId)
 	}
-
-	for _, port := range joinPattern.OutputPorts {
-		(*joinPatterns).firedPorts[port.Id] = 0
-		(*joinPatterns).portIdToJoinPatternId[port.Id] = (*joinPatterns).joinPatternId
-	}
-
-	(*joinPatterns).joinPatternId++
 }

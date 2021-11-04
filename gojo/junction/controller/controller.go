@@ -2,7 +2,6 @@ package controller
 
 import (
 	"../../types"
-	"fmt"
 )
 
 func StartController(receiver chan types.Packet) {
@@ -10,18 +9,17 @@ func StartController(receiver chan types.Packet) {
 }
 
 func runThread(receiver chan types.Packet) {
-	joinPatterns := setupController()
+	patterns := setupController()
 
 	for true {
 		data := <-receiver
-		fmt.Println(joinPatterns)
 		switch data.Type {
 		case types.MESSAGE:
-			handleMessage(&joinPatterns, data)
+			handleMessage(&patterns, data)
 		case types.AddJoinPattern:
-			registerNewJoinPattern(&joinPatterns, data.Msg.(types.JoinPatternPacket))
+			registerNewJoinPattern(&patterns, data.Payload.Msg.(types.JoinPatternPacket))
 		case types.GetNewPortId:
-			getNewPortId(&joinPatterns, data)
+			getNewPortId(&patterns, data)
 		}
 	}
 }

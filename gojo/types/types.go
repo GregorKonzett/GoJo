@@ -17,10 +17,14 @@ const (
 )
 
 type Packet struct {
-	Port SignalId
-	Msg  interface{}
-	Type Action
-	Ch   chan interface{}
+	SignalId SignalId
+	Type     Action
+	Payload  Payload
+}
+
+type Payload struct {
+	Msg interface{}
+	Ch  chan interface{}
 }
 
 type SignalId struct {
@@ -30,16 +34,15 @@ type SignalId struct {
 }
 
 type JoinPatternPacket struct {
-	InputPorts  []SignalId
-	OutputPorts []SignalId
-	DoFunction  interface{}
+	Signals    []SignalId
+	DoFunction interface{}
 }
 
-type UnaryAsync func(interface{})
-type UnarySync func() interface{}
+type UnaryAsync = func(interface{})
+type UnarySync = func(interface{}) interface{}
 
-type BinaryASync func(interface{}, interface{})
-type BinarySync func(interface{}) interface{}
+type BinaryAsync = func(interface{}, interface{})
+type BinarySync = func(interface{}, interface{}) interface{}
 
-type TernaryAsync func(interface{}, interface{}, interface{})
-type TernarySync func(interface{}, interface{}) interface{}
+type TernaryAsync = func(interface{}, interface{}, interface{})
+type TernarySync = func(interface{}, interface{}, interface{}) interface{}

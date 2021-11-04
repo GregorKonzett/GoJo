@@ -10,7 +10,7 @@ import (
 )
 
 type Junction struct {
-	sender     chan types.Packet
+	port       chan types.Packet
 	JunctionId int
 }
 
@@ -23,36 +23,40 @@ func NewJunction() *Junction {
 }
 
 func NewAsyncSignal[T any](j *Junction) (types.SignalId, func(T)) {
-	portId := types.SignalId{
+	signalId := types.SignalId{
 		ChannelType: types.AsyncSignal,
 		Id:          getNewPortId(j),
 		JunctionId:  (*j).JunctionId,
 	}
 
-	return portId, func(data T) {
-		(*j).sender <- types.Packet{
-			Port: portId,
-			Type: types.MESSAGE,
-			Msg:  data,
+	return signalId, func(data T) {
+		(*j).port <- types.Packet{
+			SignalId: signalId,
+			Type:     types.MESSAGE,
+			Payload: types.Payload{
+				Msg: data,
+			},
 		}
 	}
 }
 
 func NewSyncSignal[T any, R any](j *Junction) (types.SignalId, func(T) (R, error)) {
-	portId := types.SignalId{
+	signalId := types.SignalId{
 		ChannelType: types.SyncSignal,
 		Id:          getNewPortId(j),
 		JunctionId:  (*j).JunctionId,
 	}
 
-	return portId, func(data T) (R, error) {
+	return signalId, func(data T) (R, error) {
 		recvChannel := make(chan interface{})
 
-		(*j).sender <- types.Packet{
-			Port: portId,
-			Type: types.MESSAGE,
-			Msg:  data,
-			Ch:   recvChannel,
+		(*j).port <- types.Packet{
+			SignalId: signalId,
+			Type:     types.MESSAGE,
+			Payload: types.Payload{
+				Msg: data,
+				Ch:  recvChannel,
+			},
 		}
 
 		receivedData := <-recvChannel
@@ -71,10 +75,10 @@ func NewSyncSignal[T any, R any](j *Junction) (types.SignalId, func(T) (R, error
 
 func getNewPortId(j *Junction) int {
 	receiver := make(chan interface{})
-	(*j).sender <- types.Packet{Type: types.GetNewPortId, Ch: receiver}
-	portId := <-receiver
+	(*j).port <- types.Packet{Type: types.GetNewPortId, Payload: types.Payload{Ch: receiver}}
+	signalId := <-receiver
 
-	switch t := portId.(type) {
+	switch t := signalId.(type) {
 	case int:
 		return t
 	}
@@ -84,50 +88,48 @@ func getNewPortId(j *Junction) int {
 
 func NewUnaryAsyncJoinPattern[T any](j *Junction, signal types.SignalId) unary.AsyncPartialPattern[T] {
 	return unary.AsyncPartialPattern[T]{
-		Port:         (*j).sender,
-		InputSignals: []types.SignalId{signal},
-		JunctionId:   (*j).JunctionId,
+		Port:       (*j).port,
+		Signals:    []types.SignalId{signal},
+		JunctionId: (*j).JunctionId,
 	}
 }
 
 func NewUnarySyncJoinPattern[T any](j *Junction, signal types.SignalId) unary.SyncPartialPattern[T] {
 	return unary.SyncPartialPattern[T]{
-		Port:          (*j).sender,
-		OutputSignals: []types.SignalId{signal},
-		JunctionId:    (*j).JunctionId,
+		Port:       (*j).port,
+		Signals:    []types.SignalId{signal},
+		JunctionId: (*j).JunctionId,
 	}
 }
 
 func NewBinaryAsyncJoinPattern[T any, R any](j *Junction, signalOne types.SignalId, signalTwo types.SignalId) binary.AsyncPartialPattern[T, R] {
 	return binary.AsyncPartialPattern[T, R]{
-		Port:         (*j).sender,
-		JunctionId:   (*j).JunctionId,
-		InputSignals: []types.SignalId{signalOne, signalTwo},
+		Port:       (*j).port,
+		JunctionId: (*j).JunctionId,
+		Signals:    []types.SignalId{signalOne, signalTwo},
 	}
 }
 
 func NewBinarySyncJoinPattern[T any, R any](j *Junction, signalOne types.SignalId, signalTwo types.SignalId) binary.SyncPartialPattern[T, R] {
 	return binary.SyncPartialPattern[T, R]{
-		Port:          (*j).sender,
-		JunctionId:    (*j).JunctionId,
-		InputSignals:  []types.SignalId{signalOne},
-		OutputSignals: []types.SignalId{signalTwo},
+		Port:       (*j).port,
+		JunctionId: (*j).JunctionId,
+		Signals:    []types.SignalId{signalOne, signalTwo},
 	}
 }
 
 func NewTernaryAsyncJoinPattern[T any, S any, R any](j *Junction, signalOne types.SignalId, signalTwo types.SignalId, signalThree types.SignalId) ternary.AsyncPartialPattern[T, S, R] {
 	return ternary.AsyncPartialPattern[T, S, R]{
-		Port:         (*j).sender,
-		JunctionId:   (*j).JunctionId,
-		InputSignals: []types.SignalId{signalOne, signalTwo, signalThree},
+		Port:       (*j).port,
+		JunctionId: (*j).JunctionId,
+		Signals:    []types.SignalId{signalOne, signalTwo, signalThree},
 	}
 }
 
 func NewTernarySyncJoinPattern[T any, S any, R any](j *Junction, signalOne types.SignalId, signalTwo types.SignalId, signalThree types.SignalId) ternary.SyncPartialPattern[T, S, R] {
 	return ternary.SyncPartialPattern[T, S, R]{
-		Port:          (*j).sender,
-		JunctionId:    (*j).JunctionId,
-		InputSignals:  []types.SignalId{signalOne, signalTwo},
-		OutputSignals: []types.SignalId{signalThree},
+		Port:       (*j).port,
+		JunctionId: (*j).JunctionId,
+		Signals:    []types.SignalId{signalOne, signalTwo, signalThree},
 	}
 }

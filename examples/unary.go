@@ -6,13 +6,18 @@ import "../gojo/junction"
 func main() {
 	j := junction.NewJunction()
 
-	id1, asyncSignal := junction.NewAsyncSignal[int](j)
+	id1, asyncSignal1 := junction.NewAsyncSignal[int](j)
+	id2, asyncSignal2 := junction.NewAsyncSignal[string](j)
 
 	fmt.Println("Signal created", id1)
 
-	junction.NewUnaryAsyncJoinPattern[int](j, id1).ThenDo(func(a int) {
-		fmt.Println("We got a ", a)
+	junction.NewBinaryAsyncJoinPattern[int, string](j, id1, id2).ThenDo(func(a int, b string) {
+		fmt.Println("We got a ", a, " and ", b)
 	})
 
-	asyncSignal(1)
+	asyncSignal1(1)
+	asyncSignal2("hello there")
+
+	for true {
+	}
 }

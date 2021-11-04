@@ -6,35 +6,33 @@ import (
 )
 
 type AsyncPartialPattern[T any] struct {
-	JunctionId   int
-	Port         chan types.Packet
-	InputSignals []types.SignalId
+	JunctionId int
+	Port       chan types.Packet
+	Signals    []types.SignalId
 }
 
 type SyncPartialPattern[R any] struct {
-	JunctionId    int
-	Port          chan types.Packet
-	OutputSignals []types.SignalId
+	JunctionId int
+	Port       chan types.Packet
+	Signals    []types.SignalId
 }
 
 func (pattern AsyncPartialPattern[T]) ThenDo(do func(T)) {
 	pattern.Port <- types.Packet{
 		Type: types.AddJoinPattern,
-		Msg: types.JoinPatternPacket{
-			InputPorts:  pattern.InputSignals,
-			OutputPorts: []types.SignalId{},
-			DoFunction:  helper.WrapUnaryAsync[T](do),
-		},
+		Payload: types.Payload{Msg: types.JoinPatternPacket{
+			Signals:    pattern.Signals,
+			DoFunction: helper.WrapUnaryAsync[T](do),
+		}},
 	}
 }
 
-func (pattern SyncPartialPattern[R]) ThenDo(do func() R) {
+func (pattern SyncPartialPattern[R]) ThenDo(do func(R) R) {
 	pattern.Port <- types.Packet{
 		Type: types.AddJoinPattern,
-		Msg: types.JoinPatternPacket{
-			InputPorts:  []types.SignalId{},
-			OutputPorts: pattern.OutputSignals,
-			DoFunction:  helper.WrapUnarySync[R](do),
-		},
+		Payload: types.Payload{Msg: types.JoinPatternPacket{
+			Signals:    pattern.Signals,
+			DoFunction: helper.WrapUnarySync[R](do),
+		}},
 	}
 }
