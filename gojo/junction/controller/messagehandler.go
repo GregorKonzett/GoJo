@@ -3,7 +3,6 @@ package controller
 import (
 	"../../types"
 	"math/rand"
-	"time"
 )
 
 func handleMessage(patterns *JoinPatterns, msg types.Packet) {
@@ -34,8 +33,6 @@ func findFireableJoinPattern(patterns *JoinPatterns, port int) int {
 			validJoinPatterns = append(validJoinPatterns, pattern)
 		}
 	}
-
-	rand.Seed(time.Now().Unix())
 
 	if len(validJoinPatterns) > 0 {
 		return validJoinPatterns[rand.Intn(len(validJoinPatterns))]
