@@ -11,7 +11,7 @@ type AsyncPartialPattern[T any] struct {
 	Signals    []types.SignalId
 }
 
-type SyncPartialPattern[R any] struct {
+type SyncPartialPattern[T any, R any] struct {
 	JunctionId int
 	Port       chan types.Packet
 	Signals    []types.SignalId
@@ -27,12 +27,12 @@ func (pattern AsyncPartialPattern[T]) ThenDo(do func(T)) {
 	}
 }
 
-func (pattern SyncPartialPattern[R]) ThenDo(do func(R) R) {
+func (pattern SyncPartialPattern[T, R]) ThenDo(do func(T) R) {
 	pattern.Port <- types.Packet{
 		Type: types.AddJoinPattern,
 		Payload: types.Payload{Msg: types.JoinPatternPacket{
 			Signals:    pattern.Signals,
-			DoFunction: helper.WrapUnarySync[R](do),
+			DoFunction: helper.WrapUnarySync[T, R](do),
 		}},
 	}
 }

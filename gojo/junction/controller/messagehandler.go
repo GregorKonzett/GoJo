@@ -2,11 +2,11 @@ package controller
 
 import (
 	"../../types"
-	"fmt"
+	"math/rand"
+	"time"
 )
 
 func handleMessage(patterns *JoinPatterns, msg types.Packet) {
-	fmt.Println("Incoming message: ", msg.Payload.Msg, msg.SignalId.Id)
 	(*patterns).firedPorts[msg.SignalId.Id] = append((*patterns).firedPorts[msg.SignalId.Id], msg.Payload)
 	joinPattern := findFireableJoinPattern(patterns, msg.SignalId.Id)
 
@@ -18,8 +18,11 @@ func handleMessage(patterns *JoinPatterns, msg types.Packet) {
 func findFireableJoinPattern(patterns *JoinPatterns, port int) int {
 	potentialJoinPatterns := (*patterns).portsToJoinPatterns[port]
 
+	var validJoinPatterns []int
+
 	for _, pattern := range potentialJoinPatterns {
 		valid := true
+
 		for _, signal := range (*patterns).joinPatterns[pattern].Signals {
 			if len((*patterns).firedPorts[signal.Id]) == 0 {
 				valid = false
@@ -28,8 +31,14 @@ func findFireableJoinPattern(patterns *JoinPatterns, port int) int {
 		}
 
 		if valid {
-			return pattern
+			validJoinPatterns = append(validJoinPatterns, pattern)
 		}
+	}
+
+	rand.Seed(time.Now().Unix())
+
+	if len(validJoinPatterns) > 0 {
+		return validJoinPatterns[rand.Intn(len(validJoinPatterns))]
 	}
 
 	return -1
@@ -53,10 +62,8 @@ func fire(patterns *JoinPatterns, foundPattern int) {
 
 	switch pattern.DoFunction.(type) {
 	case types.UnaryAsync:
-		fmt.Println("found unary async")
 		go (pattern.DoFunction.(types.UnaryAsync))(params[0])
 	case types.UnarySync:
-		fmt.Println("found unary sync")
 		go func() {
 			ret := (pattern.DoFunction.(types.UnarySync))(params[0])
 
@@ -65,10 +72,8 @@ func fire(patterns *JoinPatterns, foundPattern int) {
 			}
 		}()
 	case types.BinaryAsync:
-		fmt.Println("found binary async")
 		go (pattern.DoFunction.(types.BinaryAsync))(params[0], params[1])
 	case types.BinarySync:
-		fmt.Println("found binary sync")
 		go func() {
 			ret := (pattern.DoFunction.(types.BinarySync))(params[0], params[1])
 
@@ -78,10 +83,8 @@ func fire(patterns *JoinPatterns, foundPattern int) {
 		}()
 
 	case types.TernaryAsync:
-		fmt.Println("found ternary async")
 		go (pattern.DoFunction.(types.TernaryAsync))(params[0], params[1], params[2])
 	case types.TernarySync:
-		fmt.Println("found ternary sync")
 		go func() {
 			ret := (pattern.DoFunction.(types.TernarySync))(params[0], params[1], params[2])
 

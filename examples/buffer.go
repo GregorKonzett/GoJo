@@ -14,7 +14,7 @@ func main() {
 	full, fullSignal := junction.NewAsyncSignal[int](j)
 	empty, emptySignal := junction.NewAsyncSignal[types.Unit](j)
 
-	junction.NewBinarySyncJoinPattern[types.Unit, int](j, get, full).ThenDo(func(a types.Unit, b int) int {
+	junction.NewBinarySyncJoinPattern[types.Unit, int, int](j, get, full).ThenDo(func(a types.Unit, b int) int {
 		fmt.Println("Get body called with ", a, b)
 		emptySignal(types.Unit{})
 		return b

@@ -6,15 +6,15 @@ func WrapUnaryAsync[T any](function func(T)) func(interface{}) {
 	}
 }
 
-func WrapUnarySync[T any](function func(a T) T) func(interface{}) interface{} {
+func WrapUnarySync[T any, R any](function func(a T) R) func(interface{}) interface{} {
 	return func(a interface{}) interface{} {
 		return function(a.(T))
 	}
 }
 
-func WrapBinarySync[T any, R any](function func(T, R) R) func(interface{}, interface{}) interface{} {
+func WrapBinarySync[T any, S any, R any](function func(T, S) R) func(interface{}, interface{}) interface{} {
 	return func(a interface{}, b interface{}) interface{} {
-		return function(a.(T), b.(R))
+		return function(a.(T), b.(S))
 	}
 }
 
@@ -24,7 +24,7 @@ func WrapBinaryAsync[T any, R any](function func(T, R)) func(interface{}, interf
 	}
 }
 
-func WrapTernarySync[T any, S any, R any](function func(T, S, R) R) func(interface{}, interface{}, interface{}) interface{} {
+func WrapTernarySync[T any, S any, R any, U any](function func(T, S, R) U) func(interface{}, interface{}, interface{}) interface{} {
 	return func(a interface{}, b interface{}, c interface{}) interface{} {
 		return function(a.(T), b.(S), c.(R))
 	}
