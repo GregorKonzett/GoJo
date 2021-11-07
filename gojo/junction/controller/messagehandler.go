@@ -57,22 +57,22 @@ func fire(patterns *JoinPatterns, foundPattern int) {
 		(*patterns).firedPorts[port.Id] = append((*patterns).firedPorts[port.Id][:0], (*patterns).firedPorts[port.Id][1:]...)
 	}
 
-	switch pattern.DoFunction.(type) {
+	switch pattern.Action.(type) {
 	case types.UnaryAsync:
-		go (pattern.DoFunction.(types.UnaryAsync))(params[0])
+		go (pattern.Action.(types.UnaryAsync))(params[0])
 	case types.UnarySync:
 		go func() {
-			ret := (pattern.DoFunction.(types.UnarySync))(params[0])
+			ret := (pattern.Action.(types.UnarySync))(params[0])
 
 			for _, port := range syncPorts {
 				port <- ret
 			}
 		}()
 	case types.BinaryAsync:
-		go (pattern.DoFunction.(types.BinaryAsync))(params[0], params[1])
+		go (pattern.Action.(types.BinaryAsync))(params[0], params[1])
 	case types.BinarySync:
 		go func() {
-			ret := (pattern.DoFunction.(types.BinarySync))(params[0], params[1])
+			ret := (pattern.Action.(types.BinarySync))(params[0], params[1])
 
 			for _, port := range syncPorts {
 				port <- ret
@@ -80,10 +80,10 @@ func fire(patterns *JoinPatterns, foundPattern int) {
 		}()
 
 	case types.TernaryAsync:
-		go (pattern.DoFunction.(types.TernaryAsync))(params[0], params[1], params[2])
+		go (pattern.Action.(types.TernaryAsync))(params[0], params[1], params[2])
 	case types.TernarySync:
 		go func() {
-			ret := (pattern.DoFunction.(types.TernarySync))(params[0], params[1], params[2])
+			ret := (pattern.Action.(types.TernarySync))(params[0], params[1], params[2])
 
 			for _, port := range syncPorts {
 				port <- ret

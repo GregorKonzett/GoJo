@@ -34,8 +34,8 @@ type SignalId struct {
 }
 
 type JoinPatternPacket struct {
-	Signals    []SignalId
-	DoFunction interface{}
+	Signals []SignalId
+	Action  interface{}
 }
 
 type UnaryAsync = func(interface{})

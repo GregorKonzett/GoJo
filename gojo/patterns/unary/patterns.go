@@ -17,22 +17,22 @@ type SyncPartialPattern[T any, R any] struct {
 	Signals    []types.SignalId
 }
 
-func (pattern AsyncPartialPattern[T]) ThenDo(do func(T)) {
+func (pattern AsyncPartialPattern[T]) Action(do func(T)) {
 	pattern.Port <- types.Packet{
 		Type: types.AddJoinPattern,
 		Payload: types.Payload{Msg: types.JoinPatternPacket{
-			Signals:    pattern.Signals,
-			DoFunction: helper.WrapUnaryAsync[T](do),
+			Signals: pattern.Signals,
+			Action:  helper.WrapUnaryAsync[T](do),
 		}},
 	}
 }
 
-func (pattern SyncPartialPattern[T, R]) ThenDo(do func(T) R) {
+func (pattern SyncPartialPattern[T, R]) Action(do func(T) R) {
 	pattern.Port <- types.Packet{
 		Type: types.AddJoinPattern,
 		Payload: types.Payload{Msg: types.JoinPatternPacket{
-			Signals:    pattern.Signals,
-			DoFunction: helper.WrapUnarySync[T, R](do),
+			Signals: pattern.Signals,
+			Action:  helper.WrapUnarySync[T, R](do),
 		}},
 	}
 }

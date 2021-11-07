@@ -15,25 +15,25 @@ type SyncPartialPattern[T any, S any, R any, U any] struct {
 	Signals    []types.SignalId
 }
 
-func (pattern AsyncPartialPattern[T, S, R]) ThenDo(do func(T, S, R)) {
+func (pattern AsyncPartialPattern[T, S, R]) Action(do func(T, S, R)) {
 	pattern.Port <- types.Packet{
 		Type: types.AddJoinPattern,
 		Payload: types.Payload{
 			Msg: types.JoinPatternPacket{
-				Signals:    pattern.Signals,
-				DoFunction: helper.WrapTernaryAsync[T, S, R](do),
+				Signals: pattern.Signals,
+				Action:  helper.WrapTernaryAsync[T, S, R](do),
 			},
 		},
 	}
 }
 
-func (pattern SyncPartialPattern[T, S, R, U]) ThenDo(do func(T, S, R) U) {
+func (pattern SyncPartialPattern[T, S, R, U]) Action(do func(T, S, R) U) {
 	pattern.Port <- types.Packet{
 		Type: types.AddJoinPattern,
 		Payload: types.Payload{
 			Msg: types.JoinPatternPacket{
-				Signals:    pattern.Signals,
-				DoFunction: helper.WrapTernarySync[T, S, R, U](do),
+				Signals: pattern.Signals,
+				Action:  helper.WrapTernarySync[T, S, R, U](do),
 			},
 		},
 	}
