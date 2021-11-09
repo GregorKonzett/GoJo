@@ -1,6 +1,9 @@
 package ternary
 
-import "../../types"
+import (
+	"../../types"
+	"errors"
+)
 import "../../helper"
 
 type AsyncPartialPattern[T any, S any, R any] struct {
@@ -15,7 +18,11 @@ type SyncPartialPattern[T any, S any, R any, U any] struct {
 	Signals    []types.SignalId
 }
 
-func (pattern AsyncPartialPattern[T, S, R]) Action(do func(T, S, R)) {
+func (pattern AsyncPartialPattern[T, S, R]) Action(do func(T, S, R)) error {
+	if !helper.CheckForSameJunction(pattern.Signals) {
+		return errors.New("signals from different junctions")
+	}
+
 	pattern.Port <- types.Packet{
 		Type: types.AddJoinPattern,
 		Payload: types.Payload{
@@ -25,9 +32,15 @@ func (pattern AsyncPartialPattern[T, S, R]) Action(do func(T, S, R)) {
 			},
 		},
 	}
+
+	return nil
 }
 
-func (pattern SyncPartialPattern[T, S, R, U]) Action(do func(T, S, R) U) {
+func (pattern SyncPartialPattern[T, S, R, U]) Action(do func(T, S, R) U) error {
+	if !helper.CheckForSameJunction(pattern.Signals) {
+		return errors.New("signals from different junctions")
+	}
+
 	pattern.Port <- types.Packet{
 		Type: types.AddJoinPattern,
 		Payload: types.Payload{
@@ -37,4 +50,6 @@ func (pattern SyncPartialPattern[T, S, R, U]) Action(do func(T, S, R) U) {
 			},
 		},
 	}
+
+	return nil
 }

@@ -1,6 +1,9 @@
 package binary
 
-import "../../types"
+import (
+	"../../types"
+	"errors"
+)
 import "../../helper"
 
 type AsyncPartialPattern[T any, R any] struct {
@@ -15,7 +18,11 @@ type SyncPartialPattern[T any, S any, R any] struct {
 	Signals    []types.SignalId
 }
 
-func (pattern AsyncPartialPattern[T, R]) Action(do func(T, R)) {
+func (pattern AsyncPartialPattern[T, R]) Action(do func(T, R)) error {
+	if !helper.CheckForSameJunction(pattern.Signals) {
+		return errors.New("signals from different junctions")
+	}
+
 	pattern.Port <- types.Packet{
 		Type: types.AddJoinPattern,
 		Payload: types.Payload{Msg: types.JoinPatternPacket{
@@ -24,9 +31,15 @@ func (pattern AsyncPartialPattern[T, R]) Action(do func(T, R)) {
 		},
 		},
 	}
+
+	return nil
 }
 
-func (pattern SyncPartialPattern[T, S, R]) Action(do func(T, S) R) {
+func (pattern SyncPartialPattern[T, S, R]) Action(do func(T, S) R) error {
+	if !helper.CheckForSameJunction(pattern.Signals) {
+		return errors.New("signals from different junctions")
+	}
+
 	pattern.Port <- types.Packet{
 		Type: types.AddJoinPattern,
 		Payload: types.Payload{
@@ -36,4 +49,6 @@ func (pattern SyncPartialPattern[T, S, R]) Action(do func(T, S) R) {
 			},
 		},
 	}
+
+	return nil
 }

@@ -30,7 +30,7 @@ type Payload struct {
 type SignalId struct {
 	ChannelType SignalType
 	Id          int
-	JunctionId  int
+	Junction    chan Packet
 }
 
 type JoinPatternPacket struct {
