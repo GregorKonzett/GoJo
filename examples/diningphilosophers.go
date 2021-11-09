@@ -9,12 +9,12 @@ import (
 )
 
 type Fork struct {
-	Id   types.SignalId
+	Id   types.Port
 	Free func(types.Unit)
 }
 
 type Philosopher struct {
-	Id  types.SignalId
+	Id  types.Port
 	Eat func(types.Unit)
 }
 
@@ -44,7 +44,7 @@ func main() {
 			Eat: eat,
 		})
 
-		func(philosopher int, sleepId types.SignalId, sleep func(types.Unit)) {
+		func(philosopher int, sleepId types.Port, sleep func(types.Unit)) {
 			junction.NewTernaryAsyncJoinPattern[types.Unit, types.Unit, types.Unit](j, forks[philosopher].Id, forks[(philosopher+1)%philosopherCount].Id, philosopherId).
 				Action(func(a types.Unit, b types.Unit, c types.Unit) {
 					fmt.Println("philosopher", philosopher, "is eating")

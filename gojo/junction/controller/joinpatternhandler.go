@@ -14,7 +14,7 @@ func registerNewJoinPattern(patterns *JoinPatterns, joinPattern types.JoinPatter
 	(*patterns).joinPatternId++
 }
 
-func fillPortsToJoinPatterns(patterns *JoinPatterns, signals []types.SignalId) {
+func fillPortsToJoinPatterns(patterns *JoinPatterns, signals []types.Port) {
 	for _, port := range signals {
 		if (*patterns).portsToJoinPatterns[port.Id] == nil {
 			(*patterns).portsToJoinPatterns[port.Id] = []int{}

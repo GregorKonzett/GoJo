@@ -8,14 +8,12 @@ import "../../helper"
 
 type AsyncPartialPattern[T any, R any] struct {
 	JunctionId int
-	Port       chan types.Packet
-	Signals    []types.SignalId
+	Signals    []types.Port
 }
 
 type SyncPartialPattern[T any, S any, R any] struct {
 	JunctionId int
-	Port       chan types.Packet
-	Signals    []types.SignalId
+	Signals    []types.Port
 }
 
 func (pattern AsyncPartialPattern[T, R]) Action(do func(T, R)) error {
@@ -23,7 +21,7 @@ func (pattern AsyncPartialPattern[T, R]) Action(do func(T, R)) error {
 		return errors.New("signals from different junctions")
 	}
 
-	pattern.Port <- types.Packet{
+	pattern.Signals[0].JunctionChannel <- types.Packet{
 		Type: types.AddJoinPattern,
 		Payload: types.Payload{Msg: types.JoinPatternPacket{
 			Signals: pattern.Signals,
@@ -40,7 +38,7 @@ func (pattern SyncPartialPattern[T, S, R]) Action(do func(T, S) R) error {
 		return errors.New("signals from different junctions")
 	}
 
-	pattern.Port <- types.Packet{
+	pattern.Signals[0].JunctionChannel <- types.Packet{
 		Type: types.AddJoinPattern,
 		Payload: types.Payload{
 			Msg: types.JoinPatternPacket{

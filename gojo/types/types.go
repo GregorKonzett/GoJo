@@ -17,7 +17,7 @@ const (
 )
 
 type Packet struct {
-	SignalId SignalId
+	SignalId Port
 	Type     Action
 	Payload  Payload
 }
@@ -27,14 +27,14 @@ type Payload struct {
 	Ch  chan interface{}
 }
 
-type SignalId struct {
-	ChannelType SignalType
-	Id          int
-	Junction    chan Packet
+type Port struct {
+	ChannelType     SignalType
+	Id              int
+	JunctionChannel chan Packet
 }
 
 type JoinPatternPacket struct {
-	Signals []SignalId
+	Signals []Port
 	Action  interface{}
 }
 

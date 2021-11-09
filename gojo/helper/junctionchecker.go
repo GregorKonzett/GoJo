@@ -4,9 +4,9 @@ import (
 	"../types"
 )
 
-func CheckForSameJunction(ports []types.SignalId) bool {
+func CheckForSameJunction(ports []types.Port) bool {
 	for i := 1; i < len(ports); i++ {
-		if ports[i].Junction != ports[0].Junction {
+		if ports[i].JunctionChannel != ports[0].JunctionChannel {
 			return false
 		}
 	}
