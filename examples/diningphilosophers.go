@@ -19,14 +19,14 @@ type Philosopher struct {
 }
 
 func main() {
-	philosoperCount := 5
+	philosopherCount := 5
 	j := junction.NewJunction()
 
 	var forks []Fork
 	var philosophers []Philosopher
 
 	// Create Forks
-	for i := 0; i < philosoperCount; i++ {
+	for i := 0; i < philosopherCount; i++ {
 		forkId, forkSignal := junction.NewAsyncSignal[types.Unit](j)
 		forks = append(forks, Fork{
 			Id:   forkId,
@@ -35,26 +35,31 @@ func main() {
 	}
 
 	// Create Philosophers
-	for i := 0; i < philosoperCount; i++ {
+	for i := 0; i < philosopherCount; i++ {
 		fmt.Println("Setting up philosopher ", i)
-		philosopherId, philosopherSignal := junction.NewAsyncSignal[types.Unit](j)
+		philosopherId, eat := junction.NewAsyncSignal[types.Unit](j)
+		sleepId, sleepSignal := junction.NewAsyncSignal[types.Unit](j)
 		philosophers = append(philosophers, Philosopher{
 			Id:  philosopherId,
-			Eat: philosopherSignal,
+			Eat: eat,
 		})
 
-		func(philosopher int) {
-			junction.NewTernaryAsyncJoinPattern[types.Unit, types.Unit, types.Unit](j, forks[philosopher].Id, forks[(philosopher+1)%philosoperCount].Id, philosopherId).
+		func(philosopher int, sleepId types.SignalId, sleep func(types.Unit)) {
+			junction.NewTernaryAsyncJoinPattern[types.Unit, types.Unit, types.Unit](j, forks[philosopher].Id, forks[(philosopher+1)%philosopherCount].Id, philosopherId).
 				Action(func(a types.Unit, b types.Unit, c types.Unit) {
 					fmt.Println("philosopher", philosopher, "is eating")
-					time.Sleep(time.Duration(rand.Intn(3)) * time.Second)
-					forks[philosopher].Free(types.Unit{})
-					forks[(philosopher+1)%philosoperCount].Free(types.Unit{})
 
-					time.Sleep(time.Duration(rand.Intn(5)) * time.Second)
-					philosophers[philosopher].Eat(types.Unit{})
+					forks[philosopher].Free(types.Unit{})
+					forks[(philosopher+1)%philosopherCount].Free(types.Unit{})
+					sleep(types.Unit{})
 				})
-		}(i)
+
+			junction.NewUnaryAsyncJoinPattern[types.Unit](j, sleepId).Action(func(a types.Unit) {
+				time.Sleep(time.Duration(rand.Intn(5)) * time.Second)
+				fmt.Println(philosopher, " wants to eat")
+				philosophers[philosopher].Eat(types.Unit{})
+			})
+		}(i, sleepId, sleepSignal)
 	}
 
 	for _, fork := range forks {
