@@ -85,37 +85,37 @@ func getNewPortId(j *Junction) int {
 	return 0
 }
 
-func NewUnaryAsyncJoinPattern[T any](j *Junction, signal types.Port) unary.AsyncPartialPattern[T] {
+func NewUnaryAsyncJoinPattern[T any](signal types.Port) unary.AsyncPartialPattern[T] {
 	return unary.AsyncPartialPattern[T]{
 		Signals: []types.Port{signal},
 	}
 }
 
-func NewUnarySyncJoinPattern[T any, R any](j *Junction, signal types.Port) unary.SyncPartialPattern[T, R] {
+func NewUnarySyncJoinPattern[T any, R any](signal types.Port) unary.SyncPartialPattern[T, R] {
 	return unary.SyncPartialPattern[T, R]{
 		Signals: []types.Port{signal},
 	}
 }
 
-func NewBinaryAsyncJoinPattern[T any, R any](j *Junction, signalOne types.Port, signalTwo types.Port) binary.AsyncPartialPattern[T, R] {
+func NewBinaryAsyncJoinPattern[T any, R any](signalOne types.Port, signalTwo types.Port) binary.AsyncPartialPattern[T, R] {
 	return binary.AsyncPartialPattern[T, R]{
 		Signals: []types.Port{signalOne, signalTwo},
 	}
 }
 
-func NewBinarySyncJoinPattern[T any, S any, R any](j *Junction, signalOne types.Port, signalTwo types.Port) binary.SyncPartialPattern[T, S, R] {
+func NewBinarySyncJoinPattern[T any, S any, R any](signalOne types.Port, signalTwo types.Port) binary.SyncPartialPattern[T, S, R] {
 	return binary.SyncPartialPattern[T, S, R]{
 		Signals: []types.Port{signalOne, signalTwo},
 	}
 }
 
-func NewTernaryAsyncJoinPattern[T any, S any, R any](j *Junction, signalOne types.Port, signalTwo types.Port, signalThree types.Port) ternary.AsyncPartialPattern[T, S, R] {
+func NewTernaryAsyncJoinPattern[T any, S any, R any](signalOne types.Port, signalTwo types.Port, signalThree types.Port) ternary.AsyncPartialPattern[T, S, R] {
 	return ternary.AsyncPartialPattern[T, S, R]{
 		Signals: []types.Port{signalOne, signalTwo, signalThree},
 	}
 }
 
-func NewTernarySyncJoinPattern[T any, S any, R any, U any](j *Junction, signalOne types.Port, signalTwo types.Port, signalThree types.Port) ternary.SyncPartialPattern[T, S, R, U] {
+func NewTernarySyncJoinPattern[T any, S any, R any, U any](signalOne types.Port, signalTwo types.Port, signalThree types.Port) ternary.SyncPartialPattern[T, S, R, U] {
 	return ternary.SyncPartialPattern[T, S, R, U]{
 		Signals: []types.Port{signalOne, signalTwo, signalThree},
 	}
