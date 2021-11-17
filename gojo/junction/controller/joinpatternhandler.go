@@ -2,11 +2,9 @@ package controller
 
 import (
 	"../../types"
-	"fmt"
 )
 
 func registerNewJoinPattern(patterns *JoinPatterns, joinPattern types.JoinPatternPacket) {
-	fmt.Println("Adding new join pattern: ")
 	(*patterns).joinPatterns[(*patterns).joinPatternId] = joinPattern
 
 	fillPortsToJoinPatterns(patterns, joinPattern.Signals)
