@@ -4,6 +4,7 @@ import (
 	"../gojo/junction"
 	"../gojo/types"
 	"fmt"
+	"math/rand"
 	"time"
 )
 
@@ -37,11 +38,9 @@ func newQueue[T any]() (func(T), func(types.Unit) (T, error)) {
 		lastSignal(elem)
 
 		if last.getValueSignal != nil {
-			fmt.Println("not tail")
 			last.getNextSignal(types.Unit{})
 			last.setNextSignal(elem)
 		} else {
-			fmt.Println("tail")
 			firstSignal(elem)
 		}
 	})
@@ -52,7 +51,6 @@ func newQueue[T any]() (func(T), func(types.Unit) (T, error)) {
 		if nextSignal.getValueSignal != nil {
 			firstSignal(nextSignal)
 		} else {
-			fmt.Println("Last element reached")
 			emptyLastSignal(types.Unit{})
 			lastSignal(tail)
 		}
@@ -99,54 +97,32 @@ func insertIntoElement[T any](elem *QueueElement[T], val T) {
 
 func main() {
 	enqueue, dequeue := newQueue[int]()
+	producerCount := 2
+	consumerCount := 2
 
-	// Producing items
-	func() {
-		for i := 0; i < 1; i++ {
-			go func(num int) {
+	// Producer
+	for i := 1; i <= producerCount; i++ {
+		func(num int) {
+			val := num
+			for val < 5 {
+				time.Sleep(time.Second * time.Duration(rand.Intn(2)))
+				fmt.Println("Producer", num, " Enqueueing ", val)
+				enqueue(val)
+				val += 1 * num
+			}
+		}(i)
+	}
 
-				fmt.Println("Enqueueing ", num)
-				enqueue(num)
-			}(i)
-			time.Sleep(time.Second)
-		}
-	}()
-
-	// Consuming items
-	func() {
-		for i := 0; i < 2; i++ {
-			go func() {
-
+	// Consumer
+	for i := 0; i < consumerCount; i++ {
+		go func(num int) {
+			for true {
+				time.Sleep(time.Second * time.Duration(rand.Intn(2)))
 				val, _ := dequeue(types.Unit{})
-				fmt.Println("Dequeued: ", val)
-			}()
-			time.Sleep(time.Second)
-		}
-	}()
-
-	// Producing items
-	func() {
-		for i := 0; i < 2; i++ {
-			go func(num int) {
-
-				fmt.Println("Enqueueing ", num)
-				enqueue(num)
-			}(i)
-			time.Sleep(time.Second)
-		}
-	}()
-
-	// Consuming items
-	func() {
-		for i := 0; i < 2; i++ {
-			go func() {
-
-				val, _ := dequeue(types.Unit{})
-				fmt.Println("Dequeued: ", val)
-			}()
-			time.Sleep(time.Second)
-		}
-	}()
+				fmt.Println("Consumer", num, " consuming ", val)
+			}
+		}(i)
+	}
 
 	for true {
 	}
