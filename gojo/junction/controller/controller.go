@@ -20,6 +20,8 @@ func runThread(receiver chan types.Packet) {
 			registerNewJoinPattern(&patterns, data.Payload.Msg.(types.JoinPatternPacket))
 		case types.GetNewPortId:
 			getNewPortId(&patterns, data)
+		case types.Shutdown:
+			break
 		}
 	}
 }

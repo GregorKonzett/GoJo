@@ -72,6 +72,10 @@ func NewSyncSignal[T any, R any](j *Junction) (types.Port, func(T) (R, error)) {
 	}
 }
 
+func Shutdown(j *Junction) {
+	(*j).port <- types.Packet{Type: types.Shutdown}
+}
+
 func getNewPortId(j *Junction) int {
 	receiver := make(chan interface{})
 	(*j).port <- types.Packet{Type: types.GetNewPortId, Payload: types.Payload{Ch: receiver}}

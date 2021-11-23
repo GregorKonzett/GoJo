@@ -14,6 +14,7 @@ const (
 	AddJoinPattern   = iota
 	GetNewPortId     = iota
 	GetNewJunctionId = iota
+	Shutdown         = iota
 )
 
 type Packet struct {

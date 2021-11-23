@@ -1,10 +1,10 @@
-package main
+package queue
 
 import (
-	"../gojo/junction"
-	"../gojo/types"
+	"../../gojo/junction"
+	"../../gojo/types"
 	"fmt"
-	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -14,7 +14,7 @@ type QueueElement1[T any] struct {
 	getNextSignal  func(types.Unit) (QueueElement1[T], error)
 }
 
-func newQueue1[T any]() (func(T), func(types.Unit) (T, error)) {
+func NewQueue1[T any]() (func(T), func(types.Unit) (T, error), func()) {
 	j := junction.NewJunction()
 
 	firstPort, firstSignal := junction.NewAsyncSignal[QueueElement1[T]](j)
@@ -60,7 +60,7 @@ func newQueue1[T any]() (func(T), func(types.Unit) (T, error)) {
 
 	lastSignal(tail)
 
-	return enqueueSignal, dequeueSignal
+	return enqueueSignal, dequeueSignal, func() { junction.Shutdown(j) }
 }
 
 func newQueueElement1[T any](j *junction.Junction, tail QueueElement1[T]) QueueElement1[T] {
@@ -91,35 +91,37 @@ func insertIntoElement1[T any](j *junction.Junction, elem *QueueElement1[T], val
 	(*elem).getValueSignal = getValueSignal
 }
 
-func main() {
-	enqueue, dequeue := newQueue1[int]()
-	producerCount := 2
-	consumerCount := 2
+func main1() {
+	enqueue, dequeue, _ := NewQueue1[int]()
+	producerCount := 1000000
+	consumerCount := 900
+
+	var wg sync.WaitGroup
+	start := time.Now()
 
 	// Producer
-	for i := 1; i <= producerCount; i++ {
-		func(num int) {
-			val := num
-			for val < 5 {
-				time.Sleep(time.Second * time.Duration(rand.Intn(2)))
-				fmt.Println("Producer", num, " Enqueueing ", val)
-				enqueue(val)
-				val += 1 * num
-			}
+	for i := 0; i < producerCount; i++ {
+		wg.Add(1)
+		go func(num int) {
+			defer wg.Done()
+			time.Sleep(500)
+			//fmt.Println("Producer", num, " Enqueueing ", num)
+			enqueue(num)
 		}(i)
 	}
 
 	// Consumer
 	for i := 0; i < consumerCount; i++ {
+		wg.Add(1)
 		go func(num int) {
-			for true {
-				time.Sleep(time.Second * time.Duration(rand.Intn(2)))
-				val, _ := dequeue(types.Unit{})
-				fmt.Println("Consumer", num, " consuming ", val)
-			}
+			defer wg.Done()
+
+			time.Sleep(500)
+			dequeue(types.Unit{})
 		}(i)
 	}
 
-	for true {
-	}
+	wg.Wait()
+	end := time.Since(start)
+	fmt.Println("Duration: ", end)
 }

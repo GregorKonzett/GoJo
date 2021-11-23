@@ -1,10 +1,10 @@
-package main
+package queue
 
 import (
-	"../gojo/junction"
-	"../gojo/types"
+	"../../gojo/junction"
+	"../../gojo/types"
 	"fmt"
-	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -15,7 +15,7 @@ type QueueElement[T any] struct {
 	j              *junction.Junction
 }
 
-func newQueue[T any]() (func(T), func(types.Unit) (T, error)) {
+func NewQueue[T any]() (func(T), func(types.Unit) (T, error), func()) {
 	j := junction.NewJunction()
 
 	firstPort, firstSignal := junction.NewAsyncSignal[QueueElement[T]](j)
@@ -61,7 +61,7 @@ func newQueue[T any]() (func(T), func(types.Unit) (T, error)) {
 
 	lastSignal(tail)
 
-	return enqueueSignal, dequeueSignal
+	return enqueueSignal, dequeueSignal, func() { junction.Shutdown(j) }
 }
 
 func newQueueElement[T any](tail QueueElement[T]) QueueElement[T] {
@@ -96,34 +96,37 @@ func insertIntoElement[T any](elem *QueueElement[T], val T) {
 }
 
 func main() {
-	enqueue, dequeue := newQueue[int]()
-	producerCount := 2
-	consumerCount := 2
+	enqueue, dequeue, _ := NewQueue[int]()
+	producerCount := 1000000
+	consumerCount := 900
+
+	var wg sync.WaitGroup
+	start := time.Now()
 
 	// Producer
 	for i := 1; i <= producerCount; i++ {
-		func(num int) {
-			val := num
-			for val < 5 {
-				time.Sleep(time.Second * time.Duration(rand.Intn(2)))
-				fmt.Println("Producer", num, " Enqueueing ", val)
-				enqueue(val)
-				val += 1 * num
-			}
+		wg.Add(1)
+		go func(num int) {
+			defer wg.Done()
+			time.Sleep(500)
+			//fmt.Println("Producer", num, " Enqueueing ", num)
+			enqueue(num)
 		}(i)
 	}
 
 	// Consumer
 	for i := 0; i < consumerCount; i++ {
+		wg.Add(1)
 		go func(num int) {
-			for true {
-				time.Sleep(time.Second * time.Duration(rand.Intn(2)))
-				val, _ := dequeue(types.Unit{})
-				fmt.Println("Consumer", num, " consuming ", val)
-			}
+			defer wg.Done()
+
+			time.Sleep(500)
+			dequeue(types.Unit{})
+			//fmt.Println("Consumer", num, " consuming ", val)
 		}(i)
 	}
 
-	for true {
-	}
+	wg.Wait()
+	end := time.Since(start)
+	fmt.Println("Duration: ", end)
 }
