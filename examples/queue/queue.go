@@ -10,95 +10,84 @@ import (
 
 type QueueElement[T any] struct {
 	getValueSignal func(types.Unit) (T, error)
+	setValueSignal func(T)
 	setNextSignal  func(QueueElement[T])
 	getNextSignal  func(types.Unit) (QueueElement[T], error)
 	j              *junction.Junction
 }
 
-func NewQueue[T any]() (func(T), func(types.Unit) (T, error), func()) {
+/*
+Problem when reading and writing async:
+	line 41 will block indefinitely, if first == last and the consumer calls getNextSignal first
+
+	Potential (less ideal) fix: introduce mutex for get getNextSignal fct
+*/
+
+func NewQueue[T any]() (func(T), func(types.Unit) (T, error)) {
 	j := junction.NewJunction()
 
 	firstPort, firstSignal := junction.NewAsyncSignal[QueueElement[T]](j)
 	lastPort, lastSignal := junction.NewAsyncSignal[QueueElement[T]](j)
-	emptyLastPort, emptyLastSignal := junction.NewSyncSignal[types.Unit, types.Unit](j)
 
 	enqueuePort, enqueueSignal := junction.NewAsyncSignal[T](j)
 	dequeuePort, dequeueSignal := junction.NewSyncSignal[types.Unit, T](j)
 
-	tail := newQueueElement[T](QueueElement[T]{})
-
-	junction.NewBinarySyncJoinPattern[QueueElement[T], types.Unit, types.Unit](lastPort, emptyLastPort).Action(func(last QueueElement[T], a types.Unit) types.Unit {
-		return types.Unit{}
-	})
-
 	junction.NewBinaryAsyncJoinPattern[QueueElement[T], T](lastPort, enqueuePort).Action(func(last QueueElement[T], value T) {
-		elem := newQueueElement[T](tail)
-		insertIntoElement[T](&elem, value)
+		elem := newQueueElement[T]()
+
+		last.setValueSignal(value)
+		last.setNextSignal(elem)
 
 		lastSignal(elem)
-
-		if last.getValueSignal != nil {
-			last.getNextSignal(types.Unit{})
-			last.setNextSignal(elem)
-		} else {
-			firstSignal(elem)
-		}
 	})
 
 	junction.NewBinarySyncJoinPattern[QueueElement[T], types.Unit, T](firstPort, dequeuePort).Action(func(first QueueElement[T], a types.Unit) T {
 		nextSignal, _ := first.getNextSignal(types.Unit{})
-
-		if nextSignal.getValueSignal != nil {
-			firstSignal(nextSignal)
-		} else {
-			emptyLastSignal(types.Unit{})
-			lastSignal(tail)
-		}
-
 		val, _ := first.getValueSignal(types.Unit{})
+
+		firstSignal(nextSignal)
+
 		return val
 	})
 
-	lastSignal(tail)
+	elem := newQueueElement[T]()
 
-	return enqueueSignal, dequeueSignal, func() { junction.Shutdown(j) }
+	firstSignal(elem)
+	lastSignal(elem)
+
+	return enqueueSignal, dequeueSignal
 }
 
-func newQueueElement[T any](tail QueueElement[T]) QueueElement[T] {
+func newQueueElement[T any]() QueueElement[T] {
 	j := junction.NewJunction()
 
 	setNextPort, setNextSignal := junction.NewAsyncSignal[QueueElement[T]](j)
 	getNextPort, getNextSignal := junction.NewSyncSignal[types.Unit, QueueElement[T]](j)
+	getValuePort, getValueSignal := junction.NewSyncSignal[types.Unit, T](j)
+	setValuePort, setValueSignal := junction.NewAsyncSignal[T](j)
 
 	junction.NewBinarySyncJoinPattern[types.Unit, QueueElement[T], QueueElement[T]](getNextPort, setNextPort).
 		Action(func(a types.Unit, node QueueElement[T]) QueueElement[T] {
 			return node
 		})
 
-	setNextSignal(tail)
-
-	return QueueElement[T]{
-		setNextSignal: setNextSignal,
-		getNextSignal: getNextSignal,
-		j:             j,
-	}
-}
-
-func insertIntoElement[T any](elem *QueueElement[T], val T) {
-	getValuePort, getValueSignal := junction.NewSyncSignal[types.Unit, T](elem.j)
-
-	junction.NewUnarySyncJoinPattern[types.Unit, T](getValuePort).
-		Action(func(a types.Unit) T {
+	junction.NewBinarySyncJoinPattern[T, types.Unit, T](setValuePort, getValuePort).
+		Action(func(val T, a types.Unit) T {
 			return val
 		})
 
-	(*elem).getValueSignal = getValueSignal
+	return QueueElement[T]{
+		setNextSignal:  setNextSignal,
+		getNextSignal:  getNextSignal,
+		setValueSignal: setValueSignal,
+		getValueSignal: getValueSignal,
+	}
 }
 
 func main() {
-	enqueue, dequeue, _ := NewQueue[int]()
-	producerCount := 1000000
-	consumerCount := 900
+	enqueue, dequeue := NewQueue[int]()
+	producerCount := 2
+	consumerCount := 2
 
 	var wg sync.WaitGroup
 	start := time.Now()
@@ -108,9 +97,12 @@ func main() {
 		wg.Add(1)
 		go func(num int) {
 			defer wg.Done()
-			time.Sleep(500)
-			//fmt.Println("Producer", num, " Enqueueing ", num)
-			enqueue(num)
+
+			for true {
+				time.Sleep(750)
+				fmt.Println("Producer", num, " Enqueueing ", num)
+				enqueue(num)
+			}
 		}(i)
 	}
 
@@ -120,9 +112,11 @@ func main() {
 		go func(num int) {
 			defer wg.Done()
 
-			time.Sleep(500)
-			dequeue(types.Unit{})
-			//fmt.Println("Consumer", num, " consuming ", val)
+			for true {
+				time.Sleep(500)
+				val, _ := dequeue(types.Unit{})
+				fmt.Println("Consumer", num, " consuming ", val)
+			}
 		}(i)
 	}
 
