@@ -15,9 +15,9 @@ func test(producerCount int, consumerCount int, vals int, enqueue func(int), deq
 	start := time.Now()
 
 	// Producer
-	/*for i := 0; i < 10; i++ {
+	for i := 0; i < 10; i++ {
 		enqueue(i)
-	}*/
+	}
 
 	func() {
 		for i := 1; i <= producerCount; i++ {
@@ -27,7 +27,6 @@ func test(producerCount int, consumerCount int, vals int, enqueue func(int), deq
 
 				for j := 1; j <= vals; j++ {
 					enqueue(j * num)
-					fmt.Println("Enqueuing: ", (j * num))
 					time.Sleep(time.Duration(j * 10))
 				}
 
@@ -43,8 +42,7 @@ func test(producerCount int, consumerCount int, vals int, enqueue func(int), deq
 				defer wg.Done()
 
 				for j := 0; j < vals; j++ {
-					val, _ := dequeue(types.Unit{})
-					fmt.Println("Deuqueuing: ", val)
+					dequeue(types.Unit{})
 					time.Sleep(time.Duration(j * 10))
 				}
 
