@@ -5,31 +5,53 @@ import (
 	"sync"
 )
 
+type QueueElementMutex[T any] struct {
+	val  T
+	next *QueueElementMutex[T]
+}
+
+type QueueMutex[T any] struct {
+	head *QueueElementMutex[T]
+	tail *QueueElementMutex[T]
+}
+
 func NewQueueMutex[T any]() (func(T), func(types.Unit) (T, error)) {
 	m := sync.Mutex{}
 	c := sync.NewCond(&m)
 
-	var arr []T
+	queue := QueueMutex[T]{}
 
 	enqueue := func(val T) {
 		c.L.Lock()
-		arr = append(arr, val)
-		c.Broadcast()
+
+		elem := &QueueElementMutex[T]{
+			val: val,
+		}
+
+		if queue.head == nil {
+			queue.head = elem
+			queue.tail = elem
+		} else {
+			queue.tail.next = elem
+			queue.tail = elem
+		}
+
+		c.Signal()
 		c.L.Unlock()
 	}
 
 	dequeue := func(types.Unit) (T, error) {
 		c.L.Lock()
-		for len(arr) == 0 {
+		for queue.head == nil {
 			c.Wait()
 		}
 
-		val := arr[0]
-		arr = arr[1:]
+		firstElem := queue.head
+		queue.head = queue.head.next
 
 		c.L.Unlock()
 
-		return val, nil
+		return (*firstElem).val, nil
 	}
 
 	return enqueue, dequeue

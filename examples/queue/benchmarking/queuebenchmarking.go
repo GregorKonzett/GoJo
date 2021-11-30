@@ -15,18 +15,20 @@ func test(producerCount int, consumerCount int, vals int, enqueue func(int), deq
 	start := time.Now()
 
 	// Producer
-	for i := 0; i < 10; i++ {
+	/*for i := 0; i < 10; i++ {
 		enqueue(i)
-	}
+	}*/
 
 	func() {
-		for i := 0; i < producerCount; i++ {
+		for i := 1; i <= producerCount; i++ {
 			wg.Add(1)
 			go func(num int) {
 				defer wg.Done()
 
-				for j := 0; j < vals; j++ {
+				for j := 1; j <= vals; j++ {
 					enqueue(j * num)
+					fmt.Println("Enqueuing: ", (j * num))
+					time.Sleep(time.Duration(j * 10))
 				}
 
 			}(i)
@@ -41,7 +43,9 @@ func test(producerCount int, consumerCount int, vals int, enqueue func(int), deq
 				defer wg.Done()
 
 				for j := 0; j < vals; j++ {
-					dequeue(types.Unit{})
+					val, _ := dequeue(types.Unit{})
+					fmt.Println("Deuqueuing: ", val)
+					time.Sleep(time.Duration(j * 10))
 				}
 
 			}()
@@ -58,7 +62,7 @@ func main() {
 	consumerAmount, _ := strconv.Atoi(os.Args[3])
 	vals, _ := strconv.Atoi(os.Args[4])
 
-	if os.Args[1] == "1" {
+	if os.Args[1] == "mutex" {
 		enqueue, dequeue := queue.NewQueueMutex[int]()
 		test(producerAmount, consumerAmount, vals, enqueue, dequeue)
 	} else {
