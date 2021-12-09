@@ -5,6 +5,7 @@ import (
 	"../gojo/types"
 	"constraints"
 	"fmt"
+	"time"
 )
 
 func createMapReduce[T constraints.Integer](vals []T) func(types.Unit) ([]T, error) {
@@ -49,10 +50,16 @@ func createMapReduce[T constraints.Integer](vals []T) func(types.Unit) ([]T, err
 }
 
 func main() {
-	arr := []int{1, 2, 3, 5}
+	var arr []int
+	items := 1000
+
+	for item := items; item > 0; item-- {
+		arr = append(arr, item)
+	}
+
+	start := time.Now()
 	get := createMapReduce[int](arr)
-
-	ret, _ := get(types.Unit{})
-
-	fmt.Printf("Result: %v", ret)
+	get(types.Unit{})
+	end := time.Since(start)
+	fmt.Println("Duration for", items, ": ", end)
 }
