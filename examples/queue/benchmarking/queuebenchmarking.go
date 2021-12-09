@@ -19,7 +19,11 @@ func test(producerCount int, consumerCount int, vals int, enqueue func(int), deq
 		enqueue(i)
 	}
 
-	func() {
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
 		for i := 1; i <= producerCount; i++ {
 			wg.Add(1)
 			go func(num int) {
@@ -27,23 +31,26 @@ func test(producerCount int, consumerCount int, vals int, enqueue func(int), deq
 
 				for j := 1; j <= vals; j++ {
 					enqueue(j * num)
-					time.Sleep(time.Duration(j * 10))
 				}
 
 			}(i)
 		}
 	}()
 
+	wg.Add(1)
+
 	// Consumer
-	func() {
+	go func() {
+		defer wg.Done()
+
 		for i := 0; i < consumerCount; i++ {
 			wg.Add(1)
+
 			go func() {
 				defer wg.Done()
 
 				for j := 0; j < vals; j++ {
 					dequeue(types.Unit{})
-					time.Sleep(time.Duration(j * 10))
 				}
 
 			}()

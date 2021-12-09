@@ -25,11 +25,12 @@ Problem when reading and writing async:
 
 func NewQueue[T any]() (func(T), func(types.Unit) (T, error)) {
 	j := junction.NewJunction()
+	j1 := junction.NewJunction()
 
 	firstPort, firstSignal := junction.NewAsyncSignal[QueueElement[T]](j)
-	lastPort, lastSignal := junction.NewAsyncSignal[QueueElement[T]](j)
+	lastPort, lastSignal := junction.NewAsyncSignal[QueueElement[T]](j1)
 
-	enqueuePort, enqueueSignal := junction.NewAsyncSignal[T](j)
+	enqueuePort, enqueueSignal := junction.NewAsyncSignal[T](j1)
 	dequeuePort, dequeueSignal := junction.NewSyncSignal[types.Unit, T](j)
 
 	junction.NewBinaryAsyncJoinPattern[QueueElement[T], T](lastPort, enqueuePort).Action(func(last QueueElement[T], value T) {
@@ -43,9 +44,9 @@ func NewQueue[T any]() (func(T), func(types.Unit) (T, error)) {
 
 	junction.NewBinarySyncJoinPattern[QueueElement[T], types.Unit, T](firstPort, dequeuePort).Action(func(first QueueElement[T], a types.Unit) T {
 		nextSignal, _ := first.getNextSignal(types.Unit{})
-		val, _ := first.getValueSignal(types.Unit{})
-
 		firstSignal(nextSignal)
+
+		val, _ := first.getValueSignal(types.Unit{})
 
 		return val
 	})
@@ -73,6 +74,8 @@ func newQueueElement[T any]() QueueElement[T] {
 
 	junction.NewBinarySyncJoinPattern[T, types.Unit, T](setValuePort, getValuePort).
 		Action(func(val T, a types.Unit) T {
+			// Added for benchmarking
+			time.Sleep(time.Duration(10))
 			return val
 		})
 

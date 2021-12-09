@@ -1,6 +1,8 @@
 package controller
 
-import "../../types"
+import (
+	"../../types"
+)
 
 type JoinPatterns struct {
 	portIds             int

@@ -3,6 +3,7 @@ package queue
 import (
 	"../../gojo/types"
 	"sync"
+	"time"
 )
 
 type QueueElementMutex[T any] struct {
@@ -48,7 +49,7 @@ func NewQueueMutex[T any]() (func(T), func(types.Unit) (T, error)) {
 
 		firstElem := queue.head
 		queue.head = queue.head.next
-
+		time.Sleep(time.Duration(10))
 		c.L.Unlock()
 
 		return (*firstElem).val, nil
