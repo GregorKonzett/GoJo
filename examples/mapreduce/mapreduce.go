@@ -1,8 +1,8 @@
 package main
 
 import (
-	"../gojo/junction"
-	"../gojo/types"
+	"../../gojo/junction"
+	"../../gojo/types"
 	"constraints"
 	"fmt"
 	"time"
