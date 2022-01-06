@@ -6,12 +6,19 @@ import (
 )
 
 func handleMessage(patterns *JoinPatterns, msg types.Packet) {
-	(*patterns).firedPorts[msg.SignalId.Id] = append((*patterns).firedPorts[msg.SignalId.Id], msg.Payload)
-	joinPattern := findFireableJoinPattern(patterns, msg.SignalId.Id)
+	(*patterns).firedPorts[msg.SignalId.Id].Ch <- msg.Payload
+	go firePattern(patterns, msg.SignalId.Id)
+}
+
+func firePattern(patterns *JoinPatterns, id int) {
+	(*patterns).fireMutex.Lock()
+	joinPattern := findFireableJoinPattern(patterns, id)
 
 	if joinPattern != -1 {
 		fire(patterns, joinPattern)
 	}
+
+	(*patterns).fireMutex.Unlock()
 }
 
 func findFireableJoinPattern(patterns *JoinPatterns, port int) int {
@@ -23,7 +30,7 @@ func findFireableJoinPattern(patterns *JoinPatterns, port int) int {
 		valid := true
 
 		for _, signal := range (*patterns).joinPatterns[pattern].Signals {
-			if len((*patterns).firedPorts[signal.Id]) == 0 {
+			if len((*patterns).firedPorts[signal.Id].Ch) == 0 {
 				valid = false
 				break
 			}
@@ -48,13 +55,12 @@ func fire(patterns *JoinPatterns, foundPattern int) {
 	var syncPorts []chan interface{}
 
 	for _, port := range pattern.Signals {
-		params = append(params, (*patterns).firedPorts[port.Id][0].Msg)
+		param := <-(*patterns).firedPorts[port.Id].Ch
+		params = append(params, param.Msg)
 
-		if (*patterns).firedPorts[port.Id][0].Ch != nil {
-			syncPorts = append(syncPorts, (*patterns).firedPorts[port.Id][0].Ch)
+		if param.Ch != nil {
+			syncPorts = append(syncPorts, param.Ch)
 		}
-
-		(*patterns).firedPorts[port.Id] = append((*patterns).firedPorts[port.Id][:0], (*patterns).firedPorts[port.Id][1:]...)
 	}
 
 	switch pattern.Action.(type) {

@@ -28,6 +28,10 @@ type Payload struct {
 	Ch  chan interface{}
 }
 
+type MessageChannel struct {
+	Ch chan Payload
+}
+
 type Port struct {
 	ChannelType     SignalType
 	Id              int

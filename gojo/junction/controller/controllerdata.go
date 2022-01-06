@@ -2,6 +2,7 @@ package controller
 
 import (
 	"../../types"
+	"sync"
 )
 
 type JoinPatterns struct {
@@ -9,7 +10,8 @@ type JoinPatterns struct {
 	joinPatternId       int
 	joinPatterns        map[int]types.JoinPatternPacket
 	portsToJoinPatterns map[int][]int
-	firedPorts          map[int][]types.Payload
+	firedPorts          map[int]types.MessageChannel
+	fireMutex           sync.Mutex
 }
 
 func setupController() JoinPatterns {
@@ -18,6 +20,7 @@ func setupController() JoinPatterns {
 		joinPatternId:       0,
 		joinPatterns:        make(map[int]types.JoinPatternPacket),
 		portsToJoinPatterns: make(map[int][]int),
-		firedPorts:          make(map[int][]types.Payload),
+		firedPorts:          make(map[int]types.MessageChannel),
+		fireMutex:           sync.Mutex{},
 	}
 }
