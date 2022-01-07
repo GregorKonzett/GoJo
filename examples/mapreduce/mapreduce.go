@@ -27,6 +27,7 @@ func hash[T any](s T) uint32 {
 	enc := gob.NewEncoder(&buf)
 
 	enc.Encode(s)
+
 	h.Write(buf.Bytes())
 
 	return h.Sum32()

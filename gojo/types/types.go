@@ -10,11 +10,10 @@ const (
 )
 
 const (
-	MESSAGE          = iota
-	AddJoinPattern   = iota
-	GetNewPortId     = iota
-	GetNewJunctionId = iota
-	Shutdown         = iota
+	MESSAGE        = iota
+	AddJoinPattern = iota
+	GetNewPortId   = iota
+	Shutdown       = iota
 )
 
 type Packet struct {
@@ -41,6 +40,11 @@ type Port struct {
 type JoinPatternPacket struct {
 	Signals []Port
 	Action  interface{}
+}
+
+type WrappedJoinPattern struct {
+	Pattern JoinPatternPacket
+	Bitmask int
 }
 
 type UnaryAsync = func(interface{})

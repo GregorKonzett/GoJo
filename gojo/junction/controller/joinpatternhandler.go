@@ -5,11 +5,24 @@ import (
 )
 
 func registerNewJoinPattern(patterns *JoinPatterns, joinPattern types.JoinPatternPacket) {
-	(*patterns).joinPatterns[(*patterns).joinPatternId] = joinPattern
+	(*patterns).joinPatterns[(*patterns).joinPatternId] = types.WrappedJoinPattern{
+		Pattern: joinPattern,
+		Bitmask: getBitmask(joinPattern.Signals),
+	}
 
 	fillPortsToJoinPatterns(patterns, joinPattern.Signals)
 
 	(*patterns).joinPatternId++
+}
+
+func getBitmask(signals []types.Port) int {
+	bitmask := 0
+
+	for _, port := range signals {
+		bitmask |= 1 << port.Id
+	}
+
+	return bitmask
 }
 
 func fillPortsToJoinPatterns(patterns *JoinPatterns, signals []types.Port) {
