@@ -3,7 +3,9 @@ package main
 import (
 	"../../gojo/junction"
 	"../../gojo/types"
+	"bytes"
 	"constraints"
+	"encoding/gob"
 	"fmt"
 	"hash/fnv"
 	"strings"
@@ -21,12 +23,11 @@ type ResultContainer[U constraints.Ordered, Z any] struct {
 
 func hash[T any](s T) uint32 {
 	h := fnv.New32a()
-	tmp := interface{}(s)
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
 
-	switch tmp.(type) {
-	case string:
-		h.Write([]byte(tmp.(string)))
-	}
+	enc.Encode(s)
+	h.Write(buf.Bytes())
 
 	return h.Sum32()
 }
@@ -109,7 +110,6 @@ func createMapReduce2[T any, U constraints.Ordered, Z any](
 
 			for k, v := range result {
 				h := hash(k) % uint32(len(mr.combinerSignals))
-
 				if _, ok := combinerCalls[h]; !ok {
 					combinerCalls[h] = make(map[U]Z)
 				}
