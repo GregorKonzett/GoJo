@@ -2,10 +2,14 @@ package controller
 
 import (
 	"../../types"
-	"math/rand"
 )
 
 func handleMessage(patterns *JoinPatterns, msg types.Packet) {
+	(*patterns).ports[msg.SignalId.Id] <- msg.Payload
+}
+
+/*
+func handleMessage1(patterns *JoinPatterns, msg types.Packet) {
 	(*patterns).firedPorts[msg.SignalId.Id].Ch <- msg.Payload
 
 	// Set bit corresponding to signal id to 1
@@ -95,4 +99,4 @@ func fire(patterns *JoinPatterns, foundPattern int) {
 			}
 		}()
 	}
-}
+}*/

@@ -3,10 +3,7 @@ package controller
 import "../../types"
 
 func getNewPortId(patterns *JoinPatterns, msg types.Packet) {
-	messageChannel := types.MessageChannel{
-		Ch: make(chan types.Payload, 10),
-	}
-	(*patterns).firedPorts[(*patterns).portIds] = messageChannel
+	(*patterns).ports[(*patterns).portIds] = make(chan types.Payload)
 	msg.Payload.Ch <- (*patterns).portIds
 	(*patterns).portIds++
 }
