@@ -25,3 +25,7 @@ func runThread(receiver chan types.Packet) {
 		}
 	}
 }
+
+// TODO: Check how scalable join pattern research paper handles join patterns with duplicate ports
+// Add natural number vector to each join pattern ensuring that there are n messages in the channel in addition to the bitmask
+//

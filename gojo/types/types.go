@@ -10,6 +10,12 @@ const (
 )
 
 const (
+	PENDING  = iota
+	CLAIMED  = iota
+	CONSUMED = iota
+)
+
+const (
 	MESSAGE        = iota
 	AddJoinPattern = iota
 	GetNewPortId   = iota
@@ -23,8 +29,9 @@ type Packet struct {
 }
 
 type Payload struct {
-	Msg interface{}
-	Ch  chan interface{}
+	Msg    interface{}
+	Ch     chan interface{}
+	status int
 }
 
 type MessageChannel struct {

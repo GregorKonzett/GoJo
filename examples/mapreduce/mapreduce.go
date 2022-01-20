@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"strings"
+	"time"
 )
 
 type MapReduce[T any, U constraints.Ordered, Z any] struct {
@@ -160,6 +161,9 @@ func contains(combiners []uint32, combiner uint32) bool {
 func main() {
 	data := "hello world\nhello reduce\nmap reduce\nnothing here here"
 	getResult := createMapReduce2[string, string, int](2, 3, func(val string) map[string]int {
+		fmt.Println("Starting sleeping for ", val)
+		time.Sleep(100 * time.Millisecond)
+		fmt.Println("Done sleeping for ", val)
 		res := make(map[string]int)
 
 		for _, v := range strings.Split(val, " ") {
@@ -172,6 +176,9 @@ func main() {
 
 		return res
 	}, func(res map[string]int, vals map[string]int) {
+		fmt.Println("Starting sleeping for ", vals)
+		time.Sleep(200 * time.Millisecond)
+		fmt.Println("Done sleeping for ", vals)
 		for k, v := range vals {
 			if _, ok := res[k]; !ok {
 				res[k] = v
@@ -193,3 +200,5 @@ func main() {
 
 	fmt.Println("Done: ", val)
 }
+
+// TODO: Change size of map reducer arrays (combiners, mappers) to show speedup (with delays)
