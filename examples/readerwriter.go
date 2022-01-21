@@ -26,7 +26,7 @@ func main() {
 	// Writer
 	go func() {
 		val := 0
-		for true {
+		for i := 0; i < 5; i++ {
 			time.Sleep(100)
 			fmt.Println("Producing: ", val)
 			produce(val)
@@ -35,7 +35,7 @@ func main() {
 	}()
 
 	// Reader
-	for i := 1; i < 10; i += 2 {
+	for i := 0; i < 2; i++ {
 		go func(num int) {
 			for true {
 				val, _ := consume(types.Unit{})

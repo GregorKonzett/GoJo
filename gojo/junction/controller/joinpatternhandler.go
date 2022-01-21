@@ -2,6 +2,7 @@ package controller
 
 import (
 	"../../types"
+	"math"
 	"reflect"
 )
 
@@ -9,10 +10,9 @@ func registerNewJoinPattern(patterns *JoinPatterns, pattern types.JoinPatternPac
 	(*patterns).joinPatternId++
 	recvChannels := getPortChannels(patterns, pattern)
 
-	go handleIncomingMessages(pattern.Action, recvChannels)
+	go handleIncomingMessages(pattern.Action, recvChannels, (*patterns).joinPatternId)
 }
 
-// TODO: Add sync return channels
 func getPortChannels(patterns *JoinPatterns, joinPattern types.JoinPatternPacket) []chan types.Payload {
 	var recvChannels []chan types.Payload
 
@@ -24,30 +24,43 @@ func getPortChannels(patterns *JoinPatterns, joinPattern types.JoinPatternPacket
 }
 
 // TODO: Currently select reads same messages multiple times --> make unique or make queue
-func handleIncomingMessages(action interface{}, recvChannels []chan types.Payload) {
+func handleIncomingMessages(action interface{}, recvChannels []chan types.Payload, id int) {
+	allParams := make([][]types.Payload, len(recvChannels))
+	foundAll := 0
+	expectedPattern := int(math.Pow(2, float64(len(recvChannels)))) - 1
+	cases := make([]reflect.SelectCase, len(recvChannels))
+
+	for i, ch := range recvChannels {
+		cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)}
+	}
+
 	for true {
-		cases := make([]reflect.SelectCase, len(recvChannels))
-
-		for i, ch := range recvChannels {
-			cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)}
-		}
-
-		remaining := len(cases)
-		params := make([]interface{}, len(recvChannels))
-		var syncPorts []chan interface{}
-
-		for remaining > 0 {
+		for foundAll&expectedPattern != expectedPattern {
 			chosen, value, _ := reflect.Select(cases)
 
 			payload := value.Interface().(types.Payload)
 
-			params[chosen] = payload.Msg
+			foundAll |= 1 << chosen
 
-			if payload.Ch != nil {
-				syncPorts = append(syncPorts, payload.Ch)
+			allParams[chosen] = append(allParams[chosen], payload)
+		}
+
+		var params []interface{}
+		var syncPorts []chan interface{}
+
+		for i := 0; i < len(allParams); i++ {
+			params = append(params, allParams[i][0].Msg)
+
+			if allParams[i][0].Ch != nil {
+				syncPorts = append(syncPorts, allParams[i][0].Ch)
 			}
 
-			remaining--
+			if len(allParams[i]) == 1 {
+				foundAll &^= 1 << i
+				allParams[i] = nil
+			} else {
+				allParams[i] = allParams[i][1:]
+			}
 		}
 
 		fire(action, params, syncPorts)
@@ -89,3 +102,9 @@ func fire(action interface{}, params []interface{}, syncPorts []chan interface{}
 		}()
 	}
 }
+
+// TODO IDEAS:
+/*
+	Fan in Fan out messages so we don't have to listen on a dynamic list of channels here
+	PROBLEM: No message stealing --> messages are getting lost
+*/
