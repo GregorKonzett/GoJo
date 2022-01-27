@@ -14,19 +14,18 @@ func runThread(receiver chan types.Packet) {
 	for true {
 		data := <-receiver
 		switch data.Type {
-		case types.MESSAGE:
-			handleMessage(&patterns, data)
 		case types.AddJoinPattern:
 			registerNewJoinPattern(&patterns, data.Payload.Msg.(types.JoinPatternPacket))
-		case types.GetNewPortId:
-			getNewPortId(&patterns, data)
+		case types.CreateNewPort:
+			createNewPort(&patterns, data)
 		case types.Shutdown:
 			break
 		}
 	}
 }
 
-// Create heavy loaded junctions dynamically (lots of join patterns for the junction e.g.: every possible one)
+// TODO: DONE Create heavy loaded junctions dynamically (lots of join patterns for the junction e.g.: every possible one)
 // Controller needs to match lots of patterns
+
 // TODO: Check how scalable join pattern research paper handles join patterns with duplicate ports
 // Add natural number vector to each join pattern ensuring that there are n messages in the channel in addition to the bitmask

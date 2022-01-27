@@ -5,11 +5,6 @@ type SignalType int
 type Unit struct{}
 
 const (
-	AsyncSignal = iota
-	SyncSignal  = iota
-)
-
-const (
 	PENDING  = iota
 	CLAIMED  = iota
 	CONSUMED = iota
@@ -18,7 +13,7 @@ const (
 const (
 	MESSAGE        = iota
 	AddJoinPattern = iota
-	GetNewPortId   = iota
+	CreateNewPort  = iota
 	Shutdown       = iota
 )
 
@@ -26,6 +21,11 @@ type Packet struct {
 	SignalId Port
 	Type     Action
 	Payload  Payload
+}
+
+type PortCreation struct {
+	Ch       chan *Payload
+	SignalId int
 }
 
 type Payload struct {
@@ -39,7 +39,6 @@ type MessageChannel struct {
 }
 
 type Port struct {
-	ChannelType     SignalType
 	Id              int
 	JunctionChannel chan Packet
 }

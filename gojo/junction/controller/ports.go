@@ -2,8 +2,12 @@ package controller
 
 import "../../types"
 
-func getNewPortId(patterns *JoinPatterns, msg types.Packet) {
-	(*patterns).ports[(*patterns).portIds] = make(chan *types.Payload)
-	msg.Payload.Ch <- (*patterns).portIds
+func createNewPort(patterns *JoinPatterns, msg types.Packet) {
+	channel := make(chan *types.Payload)
+	(*patterns).ports[(*patterns).portIds] = channel
+	msg.Payload.Ch <- types.PortCreation{
+		Ch:       channel,
+		SignalId: (*patterns).portIds,
+	}
 	(*patterns).portIds++
 }

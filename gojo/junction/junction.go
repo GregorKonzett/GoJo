@@ -22,40 +22,34 @@ func NewJunction() *Junction {
 }
 
 func NewAsyncSignal[T any](j *Junction) (types.Port, func(T)) {
+	portNr, signalChannel := createNewPort(j)
+
 	signalId := types.Port{
-		ChannelType:     types.AsyncSignal,
-		Id:              getNewPortId(j),
+		Id:              portNr,
 		JunctionChannel: (*j).port,
 	}
 
 	return signalId, func(data T) {
-		(*j).port <- types.Packet{
-			SignalId: signalId,
-			Type:     types.MESSAGE,
-			Payload: types.Payload{
-				Msg: data,
-			},
+		signalChannel <- &types.Payload{
+			Msg: data,
 		}
 	}
 }
 
 func NewSyncSignal[T any, R any](j *Junction) (types.Port, func(T) (R, error)) {
+	portNr, signalChannel := createNewPort(j)
+
 	signalId := types.Port{
-		ChannelType:     types.SyncSignal,
-		Id:              getNewPortId(j),
+		Id:              portNr,
 		JunctionChannel: (*j).port,
 	}
 
 	return signalId, func(data T) (R, error) {
 		recvChannel := make(chan interface{})
 
-		(*j).port <- types.Packet{
-			SignalId: signalId,
-			Type:     types.MESSAGE,
-			Payload: types.Payload{
-				Msg: data,
-				Ch:  recvChannel,
-			},
+		signalChannel <- &types.Payload{
+			Msg: data,
+			Ch:  recvChannel,
 		}
 
 		receivedData := <-recvChannel
@@ -76,17 +70,17 @@ func Shutdown(j *Junction) {
 	(*j).port <- types.Packet{Type: types.Shutdown}
 }
 
-func getNewPortId(j *Junction) int {
+func createNewPort(j *Junction) (int, chan *types.Payload) {
 	receiver := make(chan interface{})
-	(*j).port <- types.Packet{Type: types.GetNewPortId, Payload: types.Payload{Ch: receiver}}
-	signalId := <-receiver
+	(*j).port <- types.Packet{Type: types.CreateNewPort, Payload: types.Payload{Ch: receiver}}
+	signalChannel := <-receiver
 
-	switch t := signalId.(type) {
-	case int:
-		return t
+	switch t := signalChannel.(type) {
+	case types.PortCreation:
+		return t.SignalId, t.Ch
 	}
 
-	return 0
+	return 0, nil
 }
 
 func NewUnaryAsyncJoinPattern[T any](signal types.Port) unary.AsyncPartialPattern[T] {
