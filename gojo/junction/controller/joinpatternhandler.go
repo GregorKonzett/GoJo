@@ -2,7 +2,6 @@ package controller
 
 import (
 	"../../types"
-	"math"
 	"reflect"
 )
 
@@ -10,11 +9,11 @@ func registerNewJoinPattern(patterns *JoinPatterns, pattern types.JoinPatternPac
 	(*patterns).joinPatternId++
 	recvChannels := getPortChannels(patterns, pattern)
 
-	go handleIncomingMessages(pattern.Action, recvChannels, (*patterns).joinPatternId)
+	go handleIncomingMessages(pattern.Action, recvChannels)
 }
 
-func getPortChannels(patterns *JoinPatterns, joinPattern types.JoinPatternPacket) []chan types.Payload {
-	var recvChannels []chan types.Payload
+func getPortChannels(patterns *JoinPatterns, joinPattern types.JoinPatternPacket) []chan *types.Payload {
+	var recvChannels []chan *types.Payload
 
 	for _, signal := range joinPattern.Signals {
 		recvChannels = append(recvChannels, patterns.ports[signal.Id])
@@ -23,11 +22,12 @@ func getPortChannels(patterns *JoinPatterns, joinPattern types.JoinPatternPacket
 	return recvChannels
 }
 
-// TODO: Currently select reads same messages multiple times --> make unique or make queue
-func handleIncomingMessages(action interface{}, recvChannels []chan types.Payload, id int) {
-	allParams := make([][]types.Payload, len(recvChannels))
+func handleIncomingMessages(action interface{}, recvChannels []chan *types.Payload) {
+	allParams := make([][]*types.Payload, len(recvChannels))
 	foundAll := 0
-	expectedPattern := int(math.Pow(2, float64(len(recvChannels)))) - 1
+
+	expectedPattern := 1<<len(recvChannels) - 1
+
 	cases := make([]reflect.SelectCase, len(recvChannels))
 
 	for i, ch := range recvChannels {
@@ -35,10 +35,12 @@ func handleIncomingMessages(action interface{}, recvChannels []chan types.Payloa
 	}
 
 	for true {
+		// TODO: Check if enough things on each channel (if same channel twice or smth)
+		// Mention in report --> new feature to support same channel multiple times
 		for foundAll&expectedPattern != expectedPattern {
 			chosen, value, _ := reflect.Select(cases)
 
-			payload := value.Interface().(types.Payload)
+			payload := value.Interface().(*types.Payload)
 
 			foundAll |= 1 << chosen
 
@@ -108,3 +110,6 @@ func fire(action interface{}, params []interface{}, syncPorts []chan interface{}
 	Fan in Fan out messages so we don't have to listen on a dynamic list of channels here
 	PROBLEM: No message stealing --> messages are getting lost
 */
+
+// IDEAS:
+// sleeps when pattern matching
