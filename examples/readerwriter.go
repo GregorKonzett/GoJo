@@ -35,7 +35,7 @@ func main() {
 	}()
 
 	// Reader
-	for i := 0; i < 2; i++ {
+	for i := 0; i < 3; i++ {
 		go func(num int) {
 			for true {
 				val, _ := consume(types.Unit{})

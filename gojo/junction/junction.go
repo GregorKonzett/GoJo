@@ -31,7 +31,8 @@ func NewAsyncSignal[T any](j *Junction) (types.Port, func(T)) {
 
 	return signalId, func(data T) {
 		signalChannel <- &types.Payload{
-			Msg: data,
+			Msg:    data,
+			Status: types.PENDING,
 		}
 	}
 }
@@ -48,8 +49,9 @@ func NewSyncSignal[T any, R any](j *Junction) (types.Port, func(T) (R, error)) {
 		recvChannel := make(chan interface{})
 
 		signalChannel <- &types.Payload{
-			Msg: data,
-			Ch:  recvChannel,
+			Msg:    data,
+			Ch:     recvChannel,
+			Status: types.PENDING,
 		}
 
 		receivedData := <-recvChannel

@@ -8,9 +8,7 @@ func registerNewJoinPattern(patterns *JoinPatterns, pattern types.JoinPatternPac
 	channel := registerJoinPatternWithPorts(patterns, pattern)
 	(*patterns).joinPatternId++
 
-	portMapping := portToParameterIndex(pattern.Ports)
-
-	go processJoinPattern(pattern.Action, len(pattern.Ports), channel, portMapping)
+	go processJoinPattern(pattern.Action, len(pattern.Ports), channel, pattern.Ports)
 }
 
 func registerJoinPatternWithPorts(patterns *JoinPatterns, pattern types.JoinPatternPacket) chan types.WrappedPayload {
@@ -19,7 +17,17 @@ func registerJoinPatternWithPorts(patterns *JoinPatterns, pattern types.JoinPatt
 	(*patterns).portMutex.Lock()
 
 	for _, port := range pattern.Ports {
-		(*patterns).portsToJoinPattern[port.Id] = append((*patterns).portsToJoinPattern[port.Id], channel)
+		patternAlreadyIncluded := false
+		for _, includedChannel := range (*patterns).portsToJoinPattern[port.Id] {
+			if includedChannel == channel {
+				patternAlreadyIncluded = true
+				break
+			}
+		}
+
+		if !patternAlreadyIncluded {
+			(*patterns).portsToJoinPattern[port.Id] = append((*patterns).portsToJoinPattern[port.Id], channel)
+		}
 	}
 
 	(*patterns).portMutex.Unlock()
@@ -27,53 +35,23 @@ func registerJoinPatternWithPorts(patterns *JoinPatterns, pattern types.JoinPatt
 	return channel
 }
 
-// TODO: Change this to int array to handle same port multiple times
-func portToParameterIndex(ports []types.Port) map[int]int {
-	mapping := make(map[int]int)
-
-	for i, port := range ports {
-		mapping[port.Id] = i
-	}
-
-	return mapping
-}
-
-func processJoinPattern(action interface{}, paramAmount int, ch chan types.WrappedPayload, portMapping map[int]int) {
-	allParams := make([][]*types.Payload, paramAmount)
-	foundAll := 0
-
-	expectedPattern := 1<<paramAmount - 1
+func processJoinPattern(action interface{}, paramAmount int, ch chan types.WrappedPayload, portOrders []types.Port) {
+	allParams := make(map[int][]*types.WrappedPayload, paramAmount)
 
 	for true {
-		// TODO: Check if enough things on each channel (if same channel twice or smth)
-		// Mention in report --> new feature to support same channel multiple times
-		for foundAll&expectedPattern != expectedPattern {
-			incomingMessage := <-ch
-			foundAll |= 1 << incomingMessage.PortId
+		incomingMessage := <-ch
 
-			allParams[portMapping[incomingMessage.PortId]] = append(allParams[portMapping[incomingMessage.PortId]], incomingMessage.Payload)
+		if _, found := allParams[incomingMessage.PortId]; !found {
+			allParams[incomingMessage.PortId] = []*types.WrappedPayload{&incomingMessage}
+		} else {
+			allParams[incomingMessage.PortId] = append(allParams[incomingMessage.PortId], &incomingMessage)
 		}
 
-		// TODO: tryClaim
-		var params []interface{}
-		var syncPorts []chan interface{}
+		params, syncPorts, found := tryClaimMessages(allParams, portOrders)
 
-		for i := 0; i < len(allParams); i++ {
-			params = append(params, allParams[i][0].Msg)
-
-			if allParams[i][0].Ch != nil {
-				syncPorts = append(syncPorts, allParams[i][0].Ch)
-			}
-
-			if len(allParams[i]) == 1 {
-				foundAll &^= 1 << i
-				allParams[i] = nil
-			} else {
-				allParams[i] = allParams[i][1:]
-			}
+		if found {
+			fire(action, params, syncPorts)
 		}
-
-		fire(action, params, syncPorts)
 	}
 }
 

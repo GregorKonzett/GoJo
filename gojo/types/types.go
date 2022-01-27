@@ -11,7 +11,6 @@ const (
 )
 
 const (
-	MESSAGE        = iota
 	AddJoinPattern = iota
 	CreateNewPort  = iota
 	Shutdown       = iota
@@ -31,12 +30,13 @@ type PortCreation struct {
 type Payload struct {
 	Msg    interface{}
 	Ch     chan interface{}
-	status int
+	Status int32
 }
 
 type WrappedPayload struct {
-	Payload *Payload
-	PortId  int
+	Payload  *Payload
+	PortId   int
+	Consumed bool
 }
 
 type Port struct {
