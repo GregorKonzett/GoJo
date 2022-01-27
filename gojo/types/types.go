@@ -34,8 +34,9 @@ type Payload struct {
 	status int
 }
 
-type MessageChannel struct {
-	Ch chan Payload
+type WrappedPayload struct {
+	Payload *Payload
+	PortId  int
 }
 
 type Port struct {
@@ -44,8 +45,8 @@ type Port struct {
 }
 
 type JoinPatternPacket struct {
-	Signals []Port
-	Action  interface{}
+	Ports  []Port
+	Action interface{}
 }
 
 type WrappedJoinPattern struct {

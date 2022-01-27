@@ -25,8 +25,8 @@ func (pattern AsyncPartialPattern[T, S, R]) Action(do func(T, S, R)) error {
 		Type: types.AddJoinPattern,
 		Payload: types.Payload{
 			Msg: types.JoinPatternPacket{
-				Signals: pattern.Signals,
-				Action:  helper.WrapTernaryAsync[T, S, R](do),
+				Ports:  pattern.Signals,
+				Action: helper.WrapTernaryAsync[T, S, R](do),
 			},
 		},
 	}
@@ -43,8 +43,8 @@ func (pattern SyncPartialPattern[T, S, R, U]) Action(do func(T, S, R) U) error {
 		Type: types.AddJoinPattern,
 		Payload: types.Payload{
 			Msg: types.JoinPatternPacket{
-				Signals: pattern.Signals,
-				Action:  helper.WrapTernarySync[T, S, R, U](do),
+				Ports:  pattern.Signals,
+				Action: helper.WrapTernarySync[T, S, R, U](do),
 			},
 		},
 	}

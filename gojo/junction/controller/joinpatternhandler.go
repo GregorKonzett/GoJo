@@ -2,51 +2,59 @@ package controller
 
 import (
 	"../../types"
-	"reflect"
 )
 
 func registerNewJoinPattern(patterns *JoinPatterns, pattern types.JoinPatternPacket) {
+	channel := registerJoinPatternWithPorts(patterns, pattern)
 	(*patterns).joinPatternId++
-	recvChannels := getPortChannels(patterns, pattern)
 
-	go handleIncomingMessages(pattern.Action, recvChannels)
+	portMapping := portToParameterIndex(pattern.Ports)
+
+	go processJoinPattern(pattern.Action, len(pattern.Ports), channel, portMapping)
 }
 
-func getPortChannels(patterns *JoinPatterns, joinPattern types.JoinPatternPacket) []chan *types.Payload {
-	var recvChannels []chan *types.Payload
+func registerJoinPatternWithPorts(patterns *JoinPatterns, pattern types.JoinPatternPacket) chan types.WrappedPayload {
+	channel := make(chan types.WrappedPayload)
 
-	for _, signal := range joinPattern.Signals {
-		recvChannels = append(recvChannels, patterns.ports[signal.Id])
+	(*patterns).portMutex.Lock()
+
+	for _, port := range pattern.Ports {
+		(*patterns).portsToJoinPattern[port.Id] = append((*patterns).portsToJoinPattern[port.Id], channel)
 	}
 
-	return recvChannels
+	(*patterns).portMutex.Unlock()
+
+	return channel
 }
 
-func handleIncomingMessages(action interface{}, recvChannels []chan *types.Payload) {
-	allParams := make([][]*types.Payload, len(recvChannels))
+// TODO: Change this to int array to handle same port multiple times
+func portToParameterIndex(ports []types.Port) map[int]int {
+	mapping := make(map[int]int)
+
+	for i, port := range ports {
+		mapping[port.Id] = i
+	}
+
+	return mapping
+}
+
+func processJoinPattern(action interface{}, paramAmount int, ch chan types.WrappedPayload, portMapping map[int]int) {
+	allParams := make([][]*types.Payload, paramAmount)
 	foundAll := 0
 
-	expectedPattern := 1<<len(recvChannels) - 1
-
-	cases := make([]reflect.SelectCase, len(recvChannels))
-
-	for i, ch := range recvChannels {
-		cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)}
-	}
+	expectedPattern := 1<<paramAmount - 1
 
 	for true {
 		// TODO: Check if enough things on each channel (if same channel twice or smth)
 		// Mention in report --> new feature to support same channel multiple times
 		for foundAll&expectedPattern != expectedPattern {
-			chosen, value, _ := reflect.Select(cases)
+			incomingMessage := <-ch
+			foundAll |= 1 << incomingMessage.PortId
 
-			payload := value.Interface().(*types.Payload)
-
-			foundAll |= 1 << chosen
-
-			allParams[chosen] = append(allParams[chosen], payload)
+			allParams[portMapping[incomingMessage.PortId]] = append(allParams[portMapping[incomingMessage.PortId]], incomingMessage.Payload)
 		}
 
+		// TODO: tryClaim
 		var params []interface{}
 		var syncPorts []chan interface{}
 

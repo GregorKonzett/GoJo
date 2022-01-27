@@ -24,8 +24,8 @@ func (pattern AsyncPartialPattern[T]) Action(do func(T)) error {
 	pattern.Signals[0].JunctionChannel <- types.Packet{
 		Type: types.AddJoinPattern,
 		Payload: types.Payload{Msg: types.JoinPatternPacket{
-			Signals: pattern.Signals,
-			Action:  helper.WrapUnaryAsync[T](do),
+			Ports:  pattern.Signals,
+			Action: helper.WrapUnaryAsync[T](do),
 		}},
 	}
 
@@ -40,8 +40,8 @@ func (pattern SyncPartialPattern[T, R]) Action(do func(T) R) error {
 	pattern.Signals[0].JunctionChannel <- types.Packet{
 		Type: types.AddJoinPattern,
 		Payload: types.Payload{Msg: types.JoinPatternPacket{
-			Signals: pattern.Signals,
-			Action:  helper.WrapUnarySync[T, R](do),
+			Ports:  pattern.Signals,
+			Action: helper.WrapUnarySync[T, R](do),
 		}},
 	}
 

@@ -16,7 +16,7 @@ func main() {
 	pB, sB := junction.NewAsyncSignal[types.Unit](j)
 
 	junction.NewBinaryAsyncJoinPattern[types.Unit, types.Unit](pA, pB).Action(func(a types.Unit, b types.Unit) {
-		fmt.Println("Binary firing")
+		fmt.Println("Binary")
 		time.Sleep(time.Millisecond * 100)
 		sA(types.Unit{})
 		sB(types.Unit{})
