@@ -5,16 +5,17 @@ import (
 	"sync/atomic"
 )
 
-func tryClaimMessages(params map[int][]*types.WrappedPayload, portOrders []types.Port) ([]interface{}, []chan interface{}, bool) {
+func tryClaimMessages(params map[int][]*types.WrappedPayload, portOrders []int, paramOrder []int) ([]interface{}, []chan interface{}, bool) {
 	retry := true
 
-	var chosenParams []*types.WrappedPayload
-	var messages []interface{}
+	messages := make([]interface{}, len(portOrders))
 	var syncPorts []chan interface{}
 
 	for retry {
+		var chosenParams []*types.WrappedPayload
+
 		for _, portId := range portOrders {
-			foundPending := findPending(params[portId.Id])
+			foundPending := findPending(params[portId])
 
 			if foundPending == nil {
 				for _, param := range chosenParams {
@@ -44,9 +45,9 @@ func tryClaimMessages(params map[int][]*types.WrappedPayload, portOrders []types
 			continue
 		}
 
-		for _, chosenParam := range chosenParams {
+		for i, chosenParam := range chosenParams {
 			(*(*chosenParam).Payload).Status = types.CONSUMED
-			messages = append(messages, (*(*chosenParam).Payload).Msg)
+			messages[paramOrder[i]] = (*(*chosenParam).Payload).Msg
 
 			if (*chosenParam).Payload.Ch != nil {
 				syncPorts = append(syncPorts, (*(*chosenParam).Payload).Ch)
