@@ -36,6 +36,3 @@ func main() {
 		time.Sleep(time.Millisecond * 100)
 	}
 }
-
-// two binary patterns ab and ac, loop through it b c a and see if both of them fire
-// TODO: seem to stop --> investigate

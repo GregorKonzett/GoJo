@@ -23,9 +23,3 @@ func runThread(receiver chan types.Packet) {
 		}
 	}
 }
-
-// TODO: DONE Create heavy loaded junctions dynamically (lots of join patterns for the junction e.g.: every possible one)
-// Controller needs to match lots of patterns
-
-// TODO: Check how scalable join pattern research paper handles join patterns with duplicate ports
-// Add natural number vector to each join pattern ensuring that there are n messages in the channel in addition to the bitmask
