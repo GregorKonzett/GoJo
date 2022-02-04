@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 )
 
-func tryClaimMessages(params map[int][]*types.WrappedPayload, portOrders []int, paramOrder []int) ([]interface{}, []chan interface{}, bool) {
+func tryClaimMessages(params map[int][]*types.WrappedPayload, portOrders []int) ([]interface{}, []chan interface{}, bool) {
 	retry := true
 
 	messages := make([]interface{}, len(portOrders))
@@ -28,26 +28,29 @@ func tryClaimMessages(params map[int][]*types.WrappedPayload, portOrders []int, 
 			chosenParams = append(chosenParams, foundPending)
 		}
 
-		paramWasAlreadyConsumed := false
+		alreadyConsumedParams := make([]bool, len(chosenParams))
+		releaseParams := false
 
-		for _, chosenParam := range chosenParams {
+		for i, chosenParam := range chosenParams {
 			if !atomic.CompareAndSwapInt32(&(*(*chosenParam).Payload).Status, types.PENDING, types.CLAIMED) {
-				paramWasAlreadyConsumed = true
-				break
+				alreadyConsumedParams[i] = true
+				releaseParams = true
 			}
 		}
 
-		if paramWasAlreadyConsumed {
-			for _, chosenParam := range chosenParams {
-				(*(*chosenParam).Payload).Status = types.PENDING
-				(*chosenParam).Consumed = false
+		if releaseParams {
+			for i, chosenParam := range chosenParams {
+				if !alreadyConsumedParams[i] {
+					(*(*chosenParam).Payload).Status = types.PENDING
+					(*chosenParam).Consumed = false
+				}
 			}
 			continue
 		}
 
 		for i, chosenParam := range chosenParams {
 			(*(*chosenParam).Payload).Status = types.CONSUMED
-			messages[paramOrder[i]] = (*(*chosenParam).Payload).Msg
+			messages[i] = (*(*chosenParam).Payload).Msg
 
 			if (*chosenParam).Payload.Ch != nil {
 				syncPorts = append(syncPorts, (*(*chosenParam).Payload).Ch)

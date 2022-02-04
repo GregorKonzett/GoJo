@@ -2,27 +2,7 @@ package controller
 
 import (
 	"../../types"
-	"sort"
-	"time"
 )
-
-type Slice struct {
-	sort.IntSlice
-	idx []int
-}
-
-func (s Slice) Swap(i, j int) {
-	s.IntSlice.Swap(i, j)
-	s.idx[i], s.idx[j] = s.idx[j], s.idx[i]
-}
-
-func NewSlice(n []int) *Slice {
-	s := &Slice{IntSlice: sort.IntSlice(n), idx: make([]int, len(n))}
-	for i := range s.idx {
-		s.idx[i] = i
-	}
-	return s
-}
 
 func registerNewJoinPattern(patterns *JoinPatterns, pattern types.JoinPatternPacket) {
 	channel := registerJoinPatternWithPorts(patterns, pattern)
@@ -64,9 +44,6 @@ func registerJoinPatternWithPorts(patterns *JoinPatterns, pattern types.JoinPatt
 func processJoinPattern(action interface{}, paramAmount int, ch chan types.WrappedPayload, portOrders []int) {
 	allParams := make(map[int][]*types.WrappedPayload, paramAmount)
 
-	s := NewSlice(portOrders)
-	sort.Sort(s)
-
 	for true {
 		incomingMessage := <-ch
 
@@ -76,7 +53,7 @@ func processJoinPattern(action interface{}, paramAmount int, ch chan types.Wrapp
 			allParams[incomingMessage.PortId] = append(allParams[incomingMessage.PortId], &incomingMessage)
 		}
 
-		params, syncPorts, found := tryClaimMessages(allParams, s.IntSlice, s.idx)
+		params, syncPorts, found := tryClaimMessages(allParams, portOrders)
 
 		if found {
 			fire(action, params, syncPorts)
@@ -85,7 +62,6 @@ func processJoinPattern(action interface{}, paramAmount int, ch chan types.Wrapp
 }
 
 func fire(action interface{}, params []interface{}, syncPorts []chan interface{}) {
-	time.Sleep(time.Millisecond * 10)
 	switch action.(type) {
 	case types.UnaryAsync:
 		go (action.(types.UnaryAsync))(params[0])
