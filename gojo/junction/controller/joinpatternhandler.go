@@ -4,6 +4,8 @@ import (
 	"../../types"
 )
 
+// registerNewJoinPattern registers the join pattern with each of the ports it's listening on. Additionally, start a new
+// goroutine in the background handling all incoming messages to this join pattern and potentially firing it.
 func registerNewJoinPattern(patterns *JoinPatterns, pattern types.JoinPatternPacket) {
 	channel := registerJoinPatternWithPorts(patterns, pattern)
 	(*patterns).joinPatternId++
@@ -17,6 +19,8 @@ func registerNewJoinPattern(patterns *JoinPatterns, pattern types.JoinPatternPac
 	go processJoinPattern(pattern.Action, len(pattern.Ports), channel, portOrder)
 }
 
+// registerJoinPatternWithPorts adds the join pattern to each port list and returns a channel that will receive all
+// messages sent to the join pattern from all ports
 func registerJoinPatternWithPorts(patterns *JoinPatterns, pattern types.JoinPatternPacket) chan types.WrappedPayload {
 	channel := make(chan types.WrappedPayload)
 
@@ -41,6 +45,10 @@ func registerJoinPatternWithPorts(patterns *JoinPatterns, pattern types.JoinPatt
 	return channel
 }
 
+// processJoinPattern waits for new messages received from any of the ports the join pattern is listening on
+// Whenever a new message was received it is appended to a list created for each port and then checked if this join
+// pattern can now be fired. If a message can be consumed on each port, the join pattern is fired and it's listening for
+// new messages again.
 func processJoinPattern(action interface{}, paramAmount int, ch chan types.WrappedPayload, portOrders []int) {
 	allParams := make(map[int][]*types.WrappedPayload, paramAmount)
 
@@ -61,6 +69,10 @@ func processJoinPattern(action interface{}, paramAmount int, ch chan types.Wrapp
 	}
 }
 
+// fire takes the join pattern's action function, the list of parameters and a list of all syncPorts waiting for a response
+// Since the data type of the action isn't known at this point anymore, the arity of the function is first determined
+// before executed in it's own goroutine. Once this goroutine completes, the return value is sent to each syncPorts
+// (for synchronous join patterns)
 func fire(action interface{}, params []interface{}, syncPorts []chan interface{}) {
 	switch action.(type) {
 	case types.UnaryAsync:
