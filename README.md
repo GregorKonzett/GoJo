@@ -23,35 +23,35 @@ Go version 1.18 is required to use this library due to the usage of generics.
 
 To create new Join Patterns and Signals a Junction needs to be created first.
 
-``
+```
 j := junction.NewJunction()
-``
+```
 
 Afterwards, `AsyncSignals` and `SyncSignals` can be created through this junction. These functions return two values, a port and a signal. 
 The port is used to register the signals with Join Patterns and signal is the function that can be called to send and receive values from the Join Pattern's action.
 
-``
+```
 port, signal := junction.NewAsyncSignal[<TYPE>](j)
-``
+```
 
 where `<TYPE>` is the data type of the value sent via the signal.
 
 
 or
 
-``
+```
 port, signal := junction.NewSyncSignal[<SEND_TYPE>,<RECV_TYPE>](j)
-``
+```
 
 where `<SEND_TYPE>` is the data type of the Signal to the Join Pattern and `<RECV_TYPE>` is the data type that will be returned to the signal.
 
 Once Signals are created, they can be used to create new Join Patterns. Join Patterns can listen on up to 3 signals and are not limited to only one synchronous port.
 
-``
+```
 junction.NewBinaryAsyncJoinPattern[<FIRST_TYPE>,<SECOND_TYPE>](portA, portB).Action(func(a <FIRST_TYPE>, b <SECOND_TYPE>) {
   // Add function code here
 })
-``
+```
 
 In this example a binary async Join Pattern is created. This means that there exists now a function that will be executed in it's own goroutine once a message was received on both `portA` and `portB`.
 Once messages are received on both ports, the function is executed and receives both messages as the function parameters.
