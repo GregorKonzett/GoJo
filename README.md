@@ -42,7 +42,24 @@ or
 ``
 port, signal := junction.NewSyncSignal[<SEND_TYPE>,<RECV_TYPE>](j)
 ``
-where `<SEND_TYPE>` is the data type of the `Signal` to the `Join Pattern` and `<RECV_TYPE>` is the data type that will be returned to the signal.
+
+where `<SEND_TYPE>` is the data type of the Signal to the Join Pattern and `<RECV_TYPE>` is the data type that will be returned to the signal.
+
+Once Signals are created, they can be used to create new Join Patterns. Join Patterns can listen on up to 3 signals and are not limited to only one synchronous port.
+
+``
+junction.NewBinaryAsyncJoinPattern[<FIRST_TYPE>,<SECOND_TYPE>](portA, portB).Action(func(a <FIRST_TYPE>, b <SECOND_TYPE>) {
+  // Add function code here
+})
+``
+
+In this example a binary async Join Pattern is created. This means that there exists now a function that will be executed in it's own goroutine once a message was received on both `portA` and `portB`.
+Once messages are received on both ports, the function is executed and receives both messages as the function parameters.
+
+To find more detailed examples, look into the [`examples`](https://github.com/GregorKonzett/GoJo/tree/master/examples) folder.
+
+## Special Thanks
+I want to thank my project's supervisor [Dr. Ian Stark](https://homepages.inf.ed.ac.uk/stark/). I would not have been able to complete this project without his guidance and help.
 
 ## References
 
