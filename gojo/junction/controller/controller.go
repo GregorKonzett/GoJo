@@ -18,7 +18,7 @@ func runThread(receiver chan types.Packet) {
 		data := <-receiver
 		switch data.Type {
 		case types.AddJoinPattern:
-			registerNewJoinPattern(&patterns, data.Payload.Msg.(types.JoinPatternPacket))
+			registerNewJoinPattern(&patterns, data.Payload.Msg.(types.JoinPatternPacket), data.Payload.Ch)
 		case types.CreateNewPort:
 			createNewPort(&patterns, data)
 		case types.Shutdown:

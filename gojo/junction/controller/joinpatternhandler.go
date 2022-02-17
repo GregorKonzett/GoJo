@@ -6,7 +6,7 @@ import (
 
 // registerNewJoinPattern registers the join pattern with each of the ports it's listening on. Additionally, start a new
 // goroutine in the background handling all incoming messages to this join pattern and potentially firing it.
-func registerNewJoinPattern(patterns *JoinPatterns, pattern types.JoinPatternPacket) {
+func registerNewJoinPattern(patterns *JoinPatterns, pattern types.JoinPatternPacket, ch chan interface{}) {
 	channel := registerJoinPatternWithPorts(patterns, pattern)
 	(*patterns).joinPatternId++
 
@@ -16,6 +16,7 @@ func registerNewJoinPattern(patterns *JoinPatterns, pattern types.JoinPatternPac
 		portOrder[i] = portId.Id
 	}
 
+	ch <- types.Unit{}
 	go processJoinPattern(pattern.Action, len(pattern.Ports), channel, portOrder)
 }
 

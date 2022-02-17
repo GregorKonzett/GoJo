@@ -22,6 +22,7 @@ func (pattern AsyncPattern[T, S, R]) Action(do func(T, S, R)) error {
 	if !helper.CheckForSameJunction(pattern.Signals) {
 		return errors.New("signals from different junctions")
 	}
+	resp := make(chan interface{})
 
 	pattern.Signals[0].JunctionChannel <- types.Packet{
 		Type: types.AddJoinPattern,
@@ -30,9 +31,11 @@ func (pattern AsyncPattern[T, S, R]) Action(do func(T, S, R)) error {
 				Ports:  pattern.Signals,
 				Action: helper.WrapTernaryAsync[T, S, R](do),
 			},
+			Ch: resp,
 		},
 	}
 
+	<-resp
 	return nil
 }
 
@@ -42,6 +45,7 @@ func (pattern SyncPattern[T, S, R, U]) Action(do func(T, S, R) U) error {
 	if !helper.CheckForSameJunction(pattern.Signals) {
 		return errors.New("signals from different junctions")
 	}
+	resp := make(chan interface{})
 
 	pattern.Signals[0].JunctionChannel <- types.Packet{
 		Type: types.AddJoinPattern,
@@ -50,8 +54,9 @@ func (pattern SyncPattern[T, S, R, U]) Action(do func(T, S, R) U) error {
 				Ports:  pattern.Signals,
 				Action: helper.WrapTernarySync[T, S, R, U](do),
 			},
+			Ch: resp,
 		},
 	}
-
+	<-resp
 	return nil
 }
