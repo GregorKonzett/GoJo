@@ -12,9 +12,9 @@ import (
 func main() {
 	j := junction.NewJunction()
 
-	pA, sA := junction.NewAsyncSignal[types.Unit](j)
-	pB, sB := junction.NewAsyncSignal[types.Unit](j)
-	pC, sC := junction.NewAsyncSignal[types.Unit](j)
+	pA, sA := junction.NewAsyncPort[types.Unit](j)
+	pB, sB := junction.NewAsyncPort[types.Unit](j)
+	pC, sC := junction.NewAsyncPort[types.Unit](j)
 
 	junction.NewBinaryAsyncJoinPattern[types.Unit, types.Unit](pA, pB).Action(func(a types.Unit, b types.Unit) {
 		fmt.Println("AB")

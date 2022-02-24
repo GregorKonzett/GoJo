@@ -11,11 +11,11 @@ import (
 func createMapReduce[T constraints.Integer](vals []T) func(types.Unit) ([]T, error) {
 	j := junction.NewJunction()
 
-	mapPort, mapSignal := junction.NewAsyncSignal[T](j)
-	reducePort, reduceSignal := junction.NewAsyncSignal[T](j)
-	listPort, listSignal := junction.NewAsyncSignal[[]T](j)
-	finalPort, finalSignal := junction.NewAsyncSignal[[]T](j)
-	getPort, getSignal := junction.NewSyncSignal[types.Unit, []T](j)
+	mapPort, mapSignal := junction.NewAsyncPort[T](j)
+	reducePort, reduceSignal := junction.NewAsyncPort[T](j)
+	listPort, listSignal := junction.NewAsyncPort[[]T](j)
+	finalPort, finalSignal := junction.NewAsyncPort[[]T](j)
+	getPort, getSignal := junction.NewSyncPort[types.Unit, []T](j)
 
 	// map
 	junction.NewUnaryAsyncJoinPattern[T](mapPort).Action(func(val T) {

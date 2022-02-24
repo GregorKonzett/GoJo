@@ -15,11 +15,11 @@ type Result struct {
 func createMapReduce1(vals []string) func(types.Unit) (map[string]int, error) {
 	j := junction.NewJunction()
 
-	mapPort, mapSignal := junction.NewAsyncSignal[string](j)
-	reducePort, reduceSignal := junction.NewAsyncSignal[map[string]int](j)
-	listPort, listSignal := junction.NewAsyncSignal[Result](j)
-	finalPort, finalSignal := junction.NewAsyncSignal[map[string]int](j)
-	getPort, getSignal := junction.NewSyncSignal[types.Unit, map[string]int](j)
+	mapPort, mapSignal := junction.NewAsyncPort[string](j)
+	reducePort, reduceSignal := junction.NewAsyncPort[map[string]int](j)
+	listPort, listSignal := junction.NewAsyncPort[Result](j)
+	finalPort, finalSignal := junction.NewAsyncPort[map[string]int](j)
+	getPort, getSignal := junction.NewSyncPort[types.Unit, map[string]int](j)
 
 	// map
 	junction.NewUnaryAsyncJoinPattern[string](mapPort).Action(func(val string) {

@@ -10,8 +10,8 @@ import (
 func getReaderWriter[T any]() (func(T), func(types.Unit) (T, error)) {
 	j := junction.NewJunction()
 
-	releasePort, produce := junction.NewAsyncSignal[T](j)
-	acquirePort, consume := junction.NewSyncSignal[types.Unit, T](j)
+	releasePort, produce := junction.NewAsyncPort[T](j)
+	acquirePort, consume := junction.NewSyncPort[types.Unit, T](j)
 
 	junction.NewBinarySyncJoinPattern[T, types.Unit, T](releasePort, acquirePort).Action(func(value T, b types.Unit) T {
 		return value

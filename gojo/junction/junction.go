@@ -25,17 +25,17 @@ func NewJunction() *Junction {
 	return &Junction{sender}
 }
 
-// NewAsyncSignal Creates a new Port,Signal pair by registering a new Port on the controller goroutine. This Signal will
+// NewAsyncPort Creates a new Port,Signal pair by registering a new Port on the controller goroutine. This Signal will
 // not receive a return value.
-func NewAsyncSignal[T any](j *Junction) (types.Port, func(T)) {
+func NewAsyncPort[T any](j *Junction) (types.Port, func(T)) {
 	portNr, signalChannel := createNewPort(j)
 
-	signalId := types.Port{
+	portId := types.Port{
 		Id:              portNr,
 		JunctionChannel: (*j).port,
 	}
 
-	return signalId, func(data T) {
+	return portId, func(data T) {
 		signalChannel <- &types.Payload{
 			Msg:    data,
 			Status: types.PENDING,
@@ -43,17 +43,17 @@ func NewAsyncSignal[T any](j *Junction) (types.Port, func(T)) {
 	}
 }
 
-// NewSyncSignal Creates a new Port,Signal pair by registering a new Port on the controller goroutine. This Signal will
+// NewSyncPort Creates a new Port,Signal pair by registering a new Port on the controller goroutine. This Signal will
 // receive a return value and will block until it receives a value.
-func NewSyncSignal[T any, R any](j *Junction) (types.Port, func(T) (R, error)) {
+func NewSyncPort[T any, R any](j *Junction) (types.Port, func(T) (R, error)) {
 	portNr, signalChannel := createNewPort(j)
 
-	signalId := types.Port{
+	portId := types.Port{
 		Id:              portNr,
 		JunctionChannel: (*j).port,
 	}
 
-	return signalId, func(data T) (R, error) {
+	return portId, func(data T) (R, error) {
 		recvChannel := make(chan interface{})
 
 		signalChannel <- &types.Payload{

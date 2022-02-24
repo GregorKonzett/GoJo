@@ -33,9 +33,9 @@ func main() {
 	var signals []func(types.Unit)
 
 	for i := 0; i < patternCount; i++ {
-		pA, sA := junction.NewAsyncSignal[types.Unit](j)
-		pB, sB := junction.NewAsyncSignal[types.Unit](j)
-		pC, sC := junction.NewAsyncSignal[types.Unit](j)
+		pA, sA := junction.NewAsyncPort[types.Unit](j)
+		pB, sB := junction.NewAsyncPort[types.Unit](j)
+		pC, sC := junction.NewAsyncPort[types.Unit](j)
 
 		signals = append(signals, sA, sB, sC)
 

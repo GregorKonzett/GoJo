@@ -10,8 +10,8 @@ func main() {
 	j1 := junction.NewJunction()
 	j2 := junction.NewJunction()
 
-	s1, signal1 := junction.NewAsyncSignal[int](j1)
-	s2, signal2 := junction.NewAsyncSignal[int](j2)
+	s1, signal1 := junction.NewAsyncPort[int](j1)
+	s2, signal2 := junction.NewAsyncPort[int](j2)
 
 	junction.NewUnaryAsyncJoinPattern[int](s1).Action(func(a int) {
 		fmt.Println("Junction1: ", a)

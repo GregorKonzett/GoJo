@@ -50,10 +50,10 @@ func createMapReduce2[T any, U constraints.Ordered, Z any](
 
 	reducerJunction := junction.NewJunction()
 
-	reducePort, reduceSignal := junction.NewAsyncSignal[map[U]Z](reducerJunction)
-	listPort, listSignal := junction.NewAsyncSignal[ResultContainer[U, Z]](reducerJunction)
-	finalPort, finalSignal := junction.NewAsyncSignal[map[U]Z](reducerJunction)
-	getPort, getSignal := junction.NewSyncSignal[types.Unit, map[U]Z](reducerJunction)
+	reducePort, reduceSignal := junction.NewAsyncPort[map[U]Z](reducerJunction)
+	listPort, listSignal := junction.NewAsyncPort[ResultContainer[U, Z]](reducerJunction)
+	finalPort, finalSignal := junction.NewAsyncPort[map[U]Z](reducerJunction)
+	getPort, getSignal := junction.NewSyncPort[types.Unit, map[U]Z](reducerJunction)
 
 	// Create 1 final reducer merging all combiner outputs
 	junction.NewBinaryAsyncJoinPattern[ResultContainer[U, Z], map[U]Z](listPort, reducePort).Action(func(res ResultContainer[U, Z], val map[U]Z) {
@@ -75,8 +75,8 @@ func createMapReduce2[T any, U constraints.Ordered, Z any](
 	// Creating m combiner
 	for i := 0; i < m; i++ {
 		combinerJunction := junction.NewJunction()
-		combinerPort, combinerSignal := junction.NewAsyncSignal[map[U]Z](combinerJunction)
-		combinerResPort, combinerResSignal := junction.NewAsyncSignal[ResultContainer[U, Z]](combinerJunction)
+		combinerPort, combinerSignal := junction.NewAsyncPort[map[U]Z](combinerJunction)
+		combinerResPort, combinerResSignal := junction.NewAsyncPort[ResultContainer[U, Z]](combinerJunction)
 		mr.combinerSignals = append(mr.combinerSignals, combinerSignal)
 
 		junction.NewBinaryAsyncJoinPattern[ResultContainer[U, Z], map[U]Z](combinerResPort, combinerPort).Action(func(res ResultContainer[U, Z], val map[U]Z) {
@@ -101,7 +101,7 @@ func createMapReduce2[T any, U constraints.Ordered, Z any](
 
 	// Creating n Mapper
 	for i := 0; i < n; i++ {
-		mapperPort, mapperSignal := junction.NewAsyncSignal[T](junction.NewJunction())
+		mapperPort, mapperSignal := junction.NewAsyncPort[T](junction.NewJunction())
 		mr.mapperSignals = append(mr.mapperSignals, mapperSignal)
 
 		junction.NewUnaryAsyncJoinPattern[T](mapperPort).Action(func(val T) {

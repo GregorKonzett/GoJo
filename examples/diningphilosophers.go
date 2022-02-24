@@ -27,7 +27,7 @@ func main() {
 
 	// Create Forks
 	for i := 0; i < philosopherCount; i++ {
-		forkId, forkSignal := junction.NewAsyncSignal[types.Unit](j)
+		forkId, forkSignal := junction.NewAsyncPort[types.Unit](j)
 		forks = append(forks, Fork{
 			Id:   forkId,
 			Free: forkSignal,
@@ -37,8 +37,8 @@ func main() {
 	// Create Philosophers
 	for i := 0; i < philosopherCount; i++ {
 		fmt.Println("Setting up philosopher ", i)
-		philosopherId, eat := junction.NewAsyncSignal[types.Unit](j)
-		sleepId, sleepSignal := junction.NewAsyncSignal[types.Unit](j)
+		philosopherId, eat := junction.NewAsyncPort[types.Unit](j)
+		sleepId, sleepSignal := junction.NewAsyncPort[types.Unit](j)
 		philosophers = append(philosophers, Philosopher{
 			Id:  philosopherId,
 			Eat: eat,

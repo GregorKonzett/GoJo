@@ -9,9 +9,9 @@ import (
 func getMutex() (func(types.Unit), func(types.Unit) (types.Unit, error)) {
 	j := junction.NewJunction()
 
-	releasePort, release := junction.NewAsyncSignal[types.Unit](j)
-	acquirePort, acquire := junction.NewSyncSignal[types.Unit, types.Unit](j)
-	lockPort, lock := junction.NewAsyncSignal[types.Unit](j)
+	releasePort, release := junction.NewAsyncPort[types.Unit](j)
+	acquirePort, acquire := junction.NewSyncPort[types.Unit, types.Unit](j)
+	lockPort, lock := junction.NewAsyncPort[types.Unit](j)
 
 	junction.NewBinarySyncJoinPattern[types.Unit, types.Unit, types.Unit](lockPort, acquirePort).Action(func(a types.Unit, b types.Unit) types.Unit {
 		return types.Unit{}

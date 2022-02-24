@@ -19,8 +19,8 @@ func newArray[T any](size int) []ArrayElement[T] {
 	for i := 0; i < size; i++ {
 		j := junction.NewJunction()
 
-		getPort, get := junction.NewSyncSignal[types.Unit, T](j)
-		setPort, set := junction.NewAsyncSignal[T](j)
+		getPort, get := junction.NewSyncPort[types.Unit, T](j)
+		setPort, set := junction.NewAsyncPort[T](j)
 
 		junction.NewBinarySyncJoinPattern[T, types.Unit, T](setPort, getPort).Action(func(val T, b types.Unit) T {
 			return val

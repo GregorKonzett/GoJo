@@ -18,11 +18,11 @@ type QueueElement1[T any] struct {
 func NewQueue1[T any]() (func(T), func(types.Unit) (T, error)) {
 	j := junction.NewJunction()
 
-	firstPort, firstSignal := junction.NewAsyncSignal[QueueElement1[T]](j)
-	lastPort, lastSignal := junction.NewAsyncSignal[QueueElement1[T]](j)
+	firstPort, firstSignal := junction.NewAsyncPort[QueueElement1[T]](j)
+	lastPort, lastSignal := junction.NewAsyncPort[QueueElement1[T]](j)
 
-	enqueuePort, enqueueSignal := junction.NewAsyncSignal[T](j)
-	dequeuePort, dequeueSignal := junction.NewSyncSignal[types.Unit, T](j)
+	enqueuePort, enqueueSignal := junction.NewAsyncPort[T](j)
+	dequeuePort, dequeueSignal := junction.NewSyncPort[types.Unit, T](j)
 
 	junction.NewBinaryAsyncJoinPattern[QueueElement1[T], T](lastPort, enqueuePort).Action(func(last QueueElement1[T], value T) {
 		elem := newQueueElement1[T](j)
@@ -51,10 +51,10 @@ func NewQueue1[T any]() (func(T), func(types.Unit) (T, error)) {
 }
 
 func newQueueElement1[T any](j *junction.Junction) QueueElement1[T] {
-	setNextPort, setNextSignal := junction.NewAsyncSignal[QueueElement1[T]](j)
-	getNextPort, getNextSignal := junction.NewSyncSignal[types.Unit, QueueElement1[T]](j)
-	getValuePort, getValueSignal := junction.NewSyncSignal[types.Unit, T](j)
-	setValuePort, setValueSignal := junction.NewAsyncSignal[T](j)
+	setNextPort, setNextSignal := junction.NewAsyncPort[QueueElement1[T]](j)
+	getNextPort, getNextSignal := junction.NewSyncPort[types.Unit, QueueElement1[T]](j)
+	getValuePort, getValueSignal := junction.NewSyncPort[types.Unit, T](j)
+	setValuePort, setValueSignal := junction.NewAsyncPort[T](j)
 
 	junction.NewBinarySyncJoinPattern[types.Unit, QueueElement1[T], QueueElement1[T]](getNextPort, setNextPort).
 		Action(func(a types.Unit, node QueueElement1[T]) QueueElement1[T] {
