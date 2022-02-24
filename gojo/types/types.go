@@ -22,9 +22,8 @@ const (
 
 // Packet is the struct sent to the controller containing different kinds of payloads depending on the type
 type Packet struct {
-	SignalId Port
-	Type     Action
-	Payload  Payload
+	Type    Action
+	Payload Payload
 }
 
 // PortCreation is the controller's response when a new port is created. It contains the channel that's used to send
