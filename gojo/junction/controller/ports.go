@@ -13,14 +13,14 @@ func createNewPort(patterns *JoinPatterns, msg types.Packet) {
 		PortId: (*patterns).portIds,
 	}
 
-	go handleIncomingMessages(patterns, channel, (*patterns).portIds)
+	go handleIncomingSignals(patterns, channel, (*patterns).portIds)
 
 	(*patterns).portIds++
 }
 
-// handleIncomingMessages redirects each received Payload to every Join Pattern that is waiting for messages on this
+// handleIncomingSignals redirects each received Payload to every Join Pattern that is waiting for messages on this
 // port
-func handleIncomingMessages(patterns *JoinPatterns, ch chan *types.Payload, portId int) {
+func handleIncomingSignals(patterns *JoinPatterns, ch chan *types.Payload, portId int) {
 	for true {
 		data := <-ch
 		(*patterns).portMutex.RLock()
