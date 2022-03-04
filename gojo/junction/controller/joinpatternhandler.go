@@ -8,7 +8,6 @@ import (
 // goroutine in the background handling all incoming messages to this join pattern and potentially firing it.
 func registerNewJoinPattern(patterns *JoinPatterns, pattern types.JoinPatternPacket, ch chan interface{}) {
 	channel := registerJoinPatternWithPorts(patterns, pattern)
-	(*patterns).joinPatternId++
 
 	portOrder := make([]int, len(pattern.Ports))
 
