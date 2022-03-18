@@ -15,6 +15,7 @@ const (
 
 // Defines the types of Packets that can be sent to the controller
 const (
+	MESSAGE        = iota
 	AddJoinPattern = iota
 	CreateNewPort  = iota
 	Shutdown       = iota
@@ -22,6 +23,7 @@ const (
 
 // Packet is the struct sent to the controller containing different kinds of payloads depending on the type
 type Packet struct {
+	PortId  int
 	Type    Action
 	Payload Payload
 }
@@ -29,25 +31,16 @@ type Packet struct {
 // PortCreation is the controller's response when a new port is created. It contains the channel that's used to send
 //messages on, and it's PortId that is registered with join patterns
 type PortCreation struct {
-	Ch     chan *Payload
+	Ch     chan Packet
 	PortId int
 }
 
 // Payload contains a Msg (which depends on the Payload type), an optional channel that's used to respond
 //values to the sender and a Status field (PENDING, CLAIMED, CONSUMED) that's atomically swapped during the pattern matching algorithm
 type Payload struct {
-	Msg    interface{}
-	Ch     chan interface{}
-	Status int32
-}
-
-// WrappedPayload Holds a pointer to one Payload since this is shared across all join patterns to enable
-// message stealing. It adds the portId, where the message was received on, to a Payload since this information is
-// lost at the join pattern matching algorithm.
-// Consumed indicates if this message is already consumed by the current iteration of the matching algorithm
-type WrappedPayload struct {
-	Payload  *Payload
-	PortId   int
+	Msg      interface{}
+	Ch       chan interface{}
+	Status   int32
 	Consumed bool
 }
 

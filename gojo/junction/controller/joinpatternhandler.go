@@ -21,8 +21,8 @@ func registerNewJoinPattern(patterns *JoinPatterns, pattern types.JoinPatternPac
 
 // registerJoinPatternWithPorts adds the join pattern to each port list and returns a channel that will receive all
 // messages sent to the join pattern from all ports
-func registerJoinPatternWithPorts(patterns *JoinPatterns, pattern types.JoinPatternPacket) chan types.WrappedPayload {
-	channel := make(chan types.WrappedPayload)
+func registerJoinPatternWithPorts(patterns *JoinPatterns, pattern types.JoinPatternPacket) chan *types.Packet {
+	channel := make(chan *types.Packet)
 
 	(*patterns).portMutex.Lock()
 
@@ -49,16 +49,16 @@ func registerJoinPatternWithPorts(patterns *JoinPatterns, pattern types.JoinPatt
 // Whenever a new message was received it is appended to a list created for each port and then checked if this join
 // pattern can now be fired. If a message can be consumed on each port, the join pattern is fired and it's listening for
 // new messages again.
-func processJoinPattern(action interface{}, paramAmount int, ch chan types.WrappedPayload, portOrders []int) {
-	allParams := make(map[int][]*types.WrappedPayload, paramAmount)
+func processJoinPattern(action interface{}, paramAmount int, ch chan *types.Packet, portOrders []int) {
+	allParams := make(map[int][]*types.Packet, paramAmount)
 
 	for true {
 		incomingMessage := <-ch
 
 		if _, found := allParams[incomingMessage.PortId]; !found {
-			allParams[incomingMessage.PortId] = []*types.WrappedPayload{&incomingMessage}
+			allParams[incomingMessage.PortId] = []*types.Packet{incomingMessage}
 		} else {
-			allParams[incomingMessage.PortId] = append(allParams[incomingMessage.PortId], &incomingMessage)
+			allParams[incomingMessage.PortId] = append(allParams[incomingMessage.PortId], incomingMessage)
 		}
 
 		params, syncPorts, found := tryClaimMessages(allParams, portOrders)

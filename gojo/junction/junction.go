@@ -36,9 +36,13 @@ func NewAsyncPort[T any](j *Junction) (types.Port, func(T)) {
 	}
 
 	return portId, func(data T) {
-		signalChannel <- &types.Payload{
-			Msg:    data,
-			Status: types.PENDING,
+		signalChannel <- types.Packet{
+			PortId: portNr,
+			Type:   types.MESSAGE,
+			Payload: types.Payload{
+				Msg:    data,
+				Status: types.PENDING,
+			},
 		}
 	}
 }
@@ -56,10 +60,14 @@ func NewSyncPort[T any, R any](j *Junction) (types.Port, func(T) (R, error)) {
 	return portId, func(data T) (R, error) {
 		recvChannel := make(chan interface{})
 
-		signalChannel <- &types.Payload{
-			Msg:    data,
-			Ch:     recvChannel,
-			Status: types.PENDING,
+		signalChannel <- types.Packet{
+			PortId: portNr,
+			Type:   types.MESSAGE,
+			Payload: types.Payload{
+				Msg:    data,
+				Ch:     recvChannel,
+				Status: types.PENDING,
+			},
 		}
 
 		receivedData := <-recvChannel
@@ -82,7 +90,7 @@ func Shutdown(j *Junction) {
 }
 
 // createNewPort sends a Packet to the controller goroutine and returning it's Port ID + the channel to Signal
-func createNewPort(j *Junction) (int, chan *types.Payload) {
+func createNewPort(j *Junction) (int, chan types.Packet) {
 	receiver := make(chan interface{})
 	(*j).port <- types.Packet{Type: types.CreateNewPort, Payload: types.Payload{Ch: receiver}}
 	signalChannel := <-receiver

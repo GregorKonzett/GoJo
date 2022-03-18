@@ -9,7 +9,7 @@ import (
 // patterns waiting on messages on this port. This Map is safe for concurrent access by using the portMutex mutex.
 type JoinPatterns struct {
 	portIds            int
-	portsToJoinPattern map[int][]chan types.WrappedPayload
+	portsToJoinPattern map[int][]chan *types.Packet
 	portMutex          sync.RWMutex
 }
 
@@ -17,7 +17,7 @@ type JoinPatterns struct {
 func setupController() JoinPatterns {
 	return JoinPatterns{
 		portIds:            0,
-		portsToJoinPattern: make(map[int][]chan types.WrappedPayload),
+		portsToJoinPattern: make(map[int][]chan *types.Packet),
 		portMutex:          sync.RWMutex{},
 	}
 }

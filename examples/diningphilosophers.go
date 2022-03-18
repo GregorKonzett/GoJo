@@ -49,9 +49,14 @@ func main() {
 				Action(func(a types.Unit, b types.Unit, c types.Unit) {
 					fmt.Println("philosopher", philosopher, "is eating")
 
+					for j := 0; j < 1000000; j++ {
+					}
+
 					forks[philosopher].Free(types.Unit{})
 					forks[(philosopher+1)%philosopherCount].Free(types.Unit{})
-					sleep(types.Unit{})
+
+					fmt.Println(philosopher, "Done eating")
+					//sleep(types.Unit{})
 				})
 
 			junction.NewUnaryAsyncJoinPattern[types.Unit](sleepId).Action(func(a types.Unit) {
