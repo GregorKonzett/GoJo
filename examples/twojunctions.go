@@ -1,8 +1,8 @@
 package main
 
 import (
-	"../gojo/junction"
 	"fmt"
+	"github.com/junctional/GoJo/gojo/junction"
 	"time"
 )
 

@@ -1,7 +1,7 @@
 package helper
 
 import (
-	"../types"
+	"github.com/junctional/GoJo/gojo/types"
 )
 
 // CheckForSameJunction checks if all Ports are registered with the same junction

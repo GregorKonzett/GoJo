@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"../../types"
+	"github.com/junctional/GoJo/gojo/types"
 	"sync"
 )
 

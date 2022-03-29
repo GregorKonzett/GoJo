@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"../../types"
+	"github.com/junctional/GoJo/gojo/types"
 )
 
 // StartController starts the controller goroutine, which will register all join patterns + ports for one junction

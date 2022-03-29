@@ -1,7 +1,7 @@
 package queue
 
 import (
-	"../../gojo/types"
+	"github.com/junctional/GoJo/gojo/types"
 	"sync"
 	"time"
 )

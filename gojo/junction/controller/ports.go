@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"../../types"
+	"github.com/junctional/GoJo/gojo/types"
 )
 
 // createNewPort creates a new channel that will be used to receive messages on this port. Additionally, it starts a new

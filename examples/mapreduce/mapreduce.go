@@ -1,12 +1,12 @@
 package main
 
 import (
-	"../../gojo/junction"
-	"../../gojo/types"
 	"bytes"
 	"constraints"
 	"encoding/gob"
 	"fmt"
+	"github.com/junctional/GoJo/gojo/junction"
+	"github.com/junctional/GoJo/gojo/types"
 	"hash/fnv"
 	"strings"
 	"time"

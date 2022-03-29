@@ -1,10 +1,10 @@
 package binary
 
 import (
-	"../../types"
 	"errors"
+	"github.com/junctional/GoJo/gojo/helper"
+	"github.com/junctional/GoJo/gojo/types"
 )
-import "../../helper"
 
 // AsyncPattern Struct containing all ports the join pattern is listening on and defines the Action data types
 type AsyncPattern[T any, R any] struct {

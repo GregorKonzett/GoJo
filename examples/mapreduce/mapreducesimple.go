@@ -1,10 +1,10 @@
 package main
 
 import (
-	"../../gojo/junction"
-	"../../gojo/types"
 	"constraints"
 	"fmt"
+	"github.com/junctional/GoJo/gojo/junction"
+	"github.com/junctional/GoJo/gojo/types"
 	"time"
 )
 

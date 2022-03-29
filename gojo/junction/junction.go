@@ -1,12 +1,12 @@
 package junction
 
 import (
-	"../patterns/binary"
-	"../patterns/ternary"
-	"../patterns/unary"
-	"../types"
-	"./controller"
 	"errors"
+	"github.com/junctional/GoJo/gojo/junction/controller"
+	"github.com/junctional/GoJo/gojo/patterns/binary"
+	"github.com/junctional/GoJo/gojo/patterns/ternary"
+	"github.com/junctional/GoJo/gojo/patterns/unary"
+	"github.com/junctional/GoJo/gojo/types"
 )
 
 // Junction is the entrypoint to register new Signals and Join Patterns. The only necessary information is the port to

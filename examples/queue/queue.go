@@ -1,9 +1,9 @@
 package queue
 
 import (
-	"../../gojo/junction"
-	"../../gojo/types"
 	"fmt"
+	"github.com/junctional/GoJo/gojo/junction"
+	"github.com/junctional/GoJo/gojo/types"
 	"sync"
 	"time"
 )

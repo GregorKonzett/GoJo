@@ -1,9 +1,9 @@
 package unary
 
 import (
-	"../../helper"
-	"../../types"
 	"errors"
+	"github.com/junctional/GoJo/gojo/helper"
+	"github.com/junctional/GoJo/gojo/types"
 )
 
 // AsyncPattern Struct containing all ports the join pattern is listening on and defines the Action data types

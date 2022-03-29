@@ -1,9 +1,9 @@
 package main
 
 import (
-	"../gojo/junction"
-	"../gojo/types"
 	"fmt"
+	"github.com/junctional/GoJo/gojo/junction"
+	"github.com/junctional/GoJo/gojo/types"
 )
 
 func getMutex() (func(types.Unit), func(types.Unit) (types.Unit, error)) {

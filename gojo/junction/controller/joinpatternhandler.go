@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"../../types"
+	"github.com/junctional/GoJo/gojo/types"
 )
 
 // registerNewJoinPattern registers the join pattern with each of the ports it's listening on. Additionally, start a new
